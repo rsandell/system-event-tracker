@@ -27,6 +27,8 @@ package net.joinedminds.tools.evet;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 
+import java.util.Collection;
+
 /**
  * Useful functions.
  *
@@ -45,6 +47,14 @@ public final class Functions {
             return true;
         } else {
             return arr.length <= 0;
+        }
+    }
+
+    public static boolean isEmpty(Collection arr) {
+        if (arr == null) {
+            return true;
+        } else {
+            return arr.size() <= 0;
         }
     }
 

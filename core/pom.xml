@@ -86,6 +86,11 @@
             <version>3.0.2-1</version>
         </dependency>
         <dependency>
+            <groupId>org.kohsuke.stapler</groupId>
+            <artifactId>stapler-adjunct-timeline</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
             <version>2.11.1</version>

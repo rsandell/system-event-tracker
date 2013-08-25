@@ -26,33 +26,56 @@ package net.joinedminds.tools.evet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import com.mongodb.*;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import net.sf.json.JSONObject;
 import org.bson.types.ObjectId;
 
+import javax.xml.bind.DatatypeConverter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.UnknownHostException;
-import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static net.joinedminds.tools.evet.Functions.cssSanitize;
 import static net.joinedminds.tools.evet.Functions.isEmpty;
 
 /**
- * Description
+ * The database.
  *
  * @author Robert Sandell &lt;sandell.robert@gmail.com&gt;
  */
 @Singleton
 public class Db {
-    public static final List<String> RESERVED_NAMES = ImmutableList.of("system", "_id", "durationEvent", "start",
-            "title", "node", "description", "tags", "classname", "caption", "id");
+    public static final String SYSTEM = "system";
+    public static final String TAGS = "tags";
+    public static final String START = "start";
     public static final String COLLECTION_NAME = "events";
+    public static final String END = "end";
+
+    public static final String TITLE = "title";
+    public static final String DESCRIPTION = "description";
+    public static final String NODE = "node";
+    public static final String ID = "_id";
+    public static final String DURATION_EVENT = "durationEvent";
+    public static final String CLASSNAME = "classname";
+    public static final String CAPTION = "caption";
+    public static final List<String> RESERVED_NAMES = ImmutableList.of(SYSTEM, ID, DURATION_EVENT, Db.START,
+            TITLE, NODE, DESCRIPTION, TAGS, CLASSNAME, CAPTION, "id");
+
     private final DBCollection collection;
     private String dbHost;
     private String dbName;
@@ -80,10 +103,10 @@ public class Db {
         mongo = new MongoClient(uri);
         db = mongo.getDB(dbName);
         collection = db.getCollection(COLLECTION_NAME);
-        collection.ensureIndex("system");
-        collection.ensureIndex("tags");
-        collection.ensureIndex("start");
-        collection.ensureIndex("end");
+        collection.ensureIndex(SYSTEM);
+        collection.ensureIndex(TAGS);
+        collection.ensureIndex(START);
+        collection.ensureIndex(END);
     }
 
     public void updateEventEnd(String id, String title, String description, String[] tags, Map<String, String> extra) {
@@ -93,12 +116,12 @@ public class Db {
     /**
      * Updates a started event with the end timestamp.
      *
-     * @param id the id, required.
-     * @param end the timestamp when the event ended.
-     * @param title optional if the title should be updated.
+     * @param id          the id, required.
+     * @param end         the timestamp when the event ended.
+     * @param title       optional if the title should be updated.
      * @param description optional id the description should be updated.
-     * @param tags optional if any tags should be added
-     * @param extra optional any extra properties.
+     * @param tags        optional if any tags should be added
+     * @param extra       optional any extra properties.
      */
     public void updateEventEnd(String id, Date end, String title, String description, String[] tags, Map<String, String> extra) {
         Preconditions.checkNotNull(id, "id");
@@ -107,30 +130,30 @@ public class Db {
         }
         ObjectId objectId = new ObjectId(id);
         DBObject obj = collection.findOne(objectId);
-        obj.put("end", end);
+        obj.put(Db.END, end);
         if (!isEmpty(title)) {
-            obj.put("title", title);
+            obj.put(TITLE, title);
         }
-        if(!isEmpty(description)) {
-            obj.put("description", description);
+        if (!isEmpty(description)) {
+            obj.put(DESCRIPTION, description);
         }
-        if(!isEmpty(tags)) {
-            String[] t = (String[])obj.get("tags");
+        if (!isEmpty(tags)) {
+            String[] t = (String[])obj.get(TAGS);
             if (t != null) {
                 tags = ObjectArrays.concat(tags, t, String.class);
             }
-            obj.put("tags", tags);
+            obj.put(TAGS, tags);
         }
-        setClassNameAndCaption(obj, (String)obj.get("system"), (String)obj.get("node"), tags);
+        setClassNameAndCaption(obj, (String)obj.get(SYSTEM), (String)obj.get(NODE), tags);
         if (extra != null && extra.size() > 0) {
-            for(String key: extra.keySet()) {
+            for (String key : extra.keySet()) {
                 obj.put(key, extra.get(key));
             }
         }
         collection.save(obj);
     }
 
-    public String addBeginEvent(String id, String system, String title, String node, String description, String[] tags, Map<String, String> extra)  {
+    public String addBeginEvent(String id, String system, String title, String node, String description, String[] tags, Map<String, String> extra) {
         return addBeginEvent(id, system, new Date(), title, node, description, tags, extra);
     }
 
@@ -140,11 +163,11 @@ public class Db {
             start = new Date();
         }
 
-        BasicDBObject obj = new BasicDBObject("start", start);
+        BasicDBObject obj = new BasicDBObject(Db.START, start);
         if (!isEmpty(id)) {
-            obj.append("_id", new ObjectId(id));
+            obj.append(ID, new ObjectId(id));
         }
-        obj.append("durationEvent", true);
+        obj.append(DURATION_EVENT, true);
 
         return insertStandardEventData(obj, system, title, node, description, tags, extra);
     }
@@ -154,35 +177,35 @@ public class Db {
     }
 
     public String addEvent(String system, Date start, String title, String node, String description, String[] tags, Map<String, String> extra) {
-        Preconditions.checkNotNull(start, "start");
-        BasicDBObject obj = new BasicDBObject("start", start);
-        obj.append("durationEvent", false);
+        Preconditions.checkNotNull(start, START);
+        BasicDBObject obj = new BasicDBObject(START, start);
+        obj.append(DURATION_EVENT, false);
         return insertStandardEventData(obj, system, title, node, description, tags, extra);
     }
 
     private String insertStandardEventData(BasicDBObject obj, String system, String title, String node, String description, String[] tags, Map<String, String> extra) {
-        Preconditions.checkNotNull(system, "system");
-        obj.append("system", system);
-        Preconditions.checkNotNull(title, "title");
-        obj.append("title", title);
-        Preconditions.checkNotNull(node, "node");
-        obj.append("node", node);
+        Preconditions.checkNotNull(system, SYSTEM);
+        obj.append(SYSTEM, system);
+        Preconditions.checkNotNull(title, TITLE);
+        obj.append(TITLE, title);
+        Preconditions.checkNotNull(node, NODE);
+        obj.append(NODE, node);
 
         if (!isEmpty(description)) {
-            obj.append("description", description);
+            obj.append(DESCRIPTION, description);
         }
         if (!isEmpty(tags)) {
-            obj.append("tags", tags);
+            obj.append(TAGS, tags);
         }
         setClassNameAndCaption(obj, system, node, tags);
         //Extra properties provided?
-        if(extra != null && extra.size() > 0) {
+        if (extra != null && extra.size() > 0) {
             for (String key : extra.keySet()) {
                 obj.append(key, extra.get(key));
             }
         }
         collection.insert(obj);
-        ObjectId id = obj.getObjectId("_id");
+        ObjectId id = obj.getObjectId(ID);
         if (id != null) {
             return id.toString();
         }
@@ -197,7 +220,7 @@ public class Db {
         if (!isEmpty(tags)) {
             caption.append("Tags: [");
             boolean first = true;
-            for(String tag : tags) {
+            for (String tag : tags) {
                 if (first) {
                     caption.append(tag);
                     first = false;
@@ -208,10 +231,60 @@ public class Db {
             }
             caption.append("]").append("\n");
         }
-        obj.put("classname", className.toString());
-        obj.put("caption", caption.toString());
+        obj.put(CLASSNAME, className.toString());
+        obj.put(CAPTION, caption.toString());
     }
 
 
+    /**
+     * Searches the database and returns the result.
+     *
+     * @param start
+     * @param end
+     * @param systems
+     * @param tags
+     * @param nodes
+     * @param jsonOut JSON string, an array of events.
+     */
+    public void findEvents(Calendar start, Calendar end, Set<String> systems, Set<String> tags, Set<String> nodes, PrintWriter jsonOut) throws IOException {
+        Preconditions.checkNotNull(start, START);
+        Preconditions.checkNotNull(end, END);
+        BasicDBObject search = new BasicDBObject();
+        search.put(START, new BasicDBObject("$gte", start.getTime()));
+        search.put(END, new BasicDBObject("$lte", end.getTime()));
+        if (!isEmpty(systems)) {
+            search.put(SYSTEM, new BasicDBObject("$in", systems.toArray()));
+        }
+        if (!isEmpty(nodes)) {
+            search.put(NODE, new BasicDBObject("$in", nodes.toArray()));
+        }
+        if (!isEmpty(tags)) {
+            search.put(TAGS, new BasicDBObject("$in", tags.toArray()));
+        }
 
+        DBCursor cursor = collection.find(search);
+        jsonOut.write('[');
+        while (cursor.hasNext()) {
+            DBObject o = cursor.next();
+            JSONObject json = new JSONObject();
+            for (String key : o.keySet()) {
+                if(START.equals(key)) {
+                    Calendar c = Calendar.getInstance();
+                    c.setTime((Date)o.get(START));
+                    json.put(START, DatatypeConverter.printDateTime(c));
+                } else if(END.equals(key)) {
+                    Calendar c = Calendar.getInstance();
+                    c.setTime((Date)o.get(END));
+                    json.put(END, DatatypeConverter.printDateTime(c));
+                } else if(ID.equals(key)) {
+                    ObjectId id = (ObjectId)o.get(ID);
+                    json.put(ID, id.toString());
+                } else {
+                    json.put(key, o.get(key));
+                }
+            }
+            json.write(jsonOut);
+        }
+        jsonOut.write(']');
+    }
 }

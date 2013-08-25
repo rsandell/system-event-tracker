@@ -140,6 +140,10 @@ public class Evet {
         }
     }
 
+    public ViewBuilder getTimeline() {
+        return new ViewBuilder(db);
+    }
+
     private String findNode(StaplerRequest request, String node) {
         if (!isEmpty(node)) {
             return node;
