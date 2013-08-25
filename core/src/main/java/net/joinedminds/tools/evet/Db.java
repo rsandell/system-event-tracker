@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static net.joinedminds.tools.evet.Functions.cssSanitize;
 import static net.joinedminds.tools.evet.Functions.isEmpty;
 
 /**
@@ -50,7 +51,7 @@ import static net.joinedminds.tools.evet.Functions.isEmpty;
 @Singleton
 public class Db {
     public static final List<String> RESERVED_NAMES = ImmutableList.of("system", "_id", "durationEvent", "start",
-            "title", "node", "description", "tags", "classname", "caption");
+            "title", "node", "description", "tags", "classname", "caption", "id");
     public static final String COLLECTION_NAME = "events";
     private final DBCollection collection;
     private String dbHost;
@@ -189,8 +190,8 @@ public class Db {
     }
 
     private void setClassNameAndCaption(DBObject obj, String system, String node, String[] tags) {
-        StringBuilder className = new StringBuilder(system);
-        className.append(" ").append(node);
+        StringBuilder className = new StringBuilder(cssSanitize(system));
+        className.append(" ").append(cssSanitize(node));
         StringBuilder caption = new StringBuilder("System: ").append(system).append("\n");
         caption.append("Node: ").append(node).append("\n");
         if (!isEmpty(tags)) {
@@ -203,12 +204,14 @@ public class Db {
                 } else {
                     caption.append(",").append(tag);
                 }
-                className.append(" ").append(tag);
+                className.append(" ").append(cssSanitize(tag));
             }
             caption.append("]").append("\n");
         }
         obj.put("classname", className.toString());
         obj.put("caption", caption.toString());
     }
+
+
 
 }

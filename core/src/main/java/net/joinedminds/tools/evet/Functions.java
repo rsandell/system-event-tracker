@@ -96,4 +96,8 @@ public final class Functions {
         }
         return false;
     }
+
+    public static String cssSanitize(String s) {
+        return s.replaceAll("[^_a-zA-Z0-9-]", "-");
+    }
 }
