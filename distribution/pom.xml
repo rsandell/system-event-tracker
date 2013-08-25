@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>distribution</artifactId>
+    <name>Evet Distribution</name>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>net.joinedminds.tools.evet</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <comments>Copyright 2013 Robert Sandell. All rights reserved.</comments>
+        </license>
+    </licenses>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.joinedminds.tools.evet</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.joinedminds.tools.evet</groupId>
+            <artifactId>main</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>evgenyg</id>
+            <url>http://evgenyg.artifactoryonline.com/evgenyg/repo/com/github/goldin/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.github.goldin</groupId>
+                <artifactId>copy-maven-plugin</artifactId>
+                <version>0.2.5</version>
+                <executions>
+                    <execution>
+                        <id>create-archive</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <targetPath>${project.build.directory}/unpack</targetPath>
+                                    <dependencies>
+                                        <dependency>
+                                            <groupId>net.joinedminds.tools.evet</groupId>
+                                            <artifactId>core</artifactId>
+                                            <version>${project.version}</version>
+                                            <type>war</type>
+                                        </dependency>
+                                        <dependency>
+                                            <groupId>net.joinedminds.tools.evet</groupId>
+                                            <artifactId>main</artifactId>
+                                            <version>${project.version}</version>
+                                        </dependency>
+                                    </dependencies>
+
+
+                                    <!--<dependency>
+                                        <includeScope>compile</includeScope>
+                                        <excludeTransitive>true</excludeTransitive>
+                                    </dependency>-->
+                                    <unpack>true</unpack>
+                                </resource>
+                                <resource>
+                                    <targetPath>${project.build.directory}/evet.war</targetPath>
+                                    <directory>${project.build.directory}/unpack</directory>
+                                    <excludes>
+                                        <exclude>**/META-INF/*.RSA</exclude>
+                                        <exclude>**/META-INF/*.SF</exclude>
+                                        <exclude>**/META-INF/*.inf</exclude>
+                                    </excludes>
+                                    <pack>true</pack>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>

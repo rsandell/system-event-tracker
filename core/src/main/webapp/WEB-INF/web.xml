@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+    <context-param>
+        <param-name>DB_HOST</param-name>
+        <param-value>192.168.1.20</param-value>
+        <!--<param-value>localhost</param-value>-->
+    </context-param>
+    <context-param>
+        <param-name>DB_NAME</param-name>
+        <param-value>evet1</param-value>
+    </context-param>
+    <!--<context-param>
+        <param-name>DB_USER</param-name>
+        <param-value>  </param-value>
+    </context-param>
+    <context-param>
+        <param-name>DB_PASSWD</param-name>
+        <param-value></param-value>
+    </context-param>-->
+
+    <servlet>
+        <servlet-name>Stapler</servlet-name>
+        <servlet-class>org.kohsuke.stapler.Stapler</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Stapler</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+    <listener>
+        <listener-class>net.joinedminds.tools.evet.WebAppMain</listener-class>
+    </listener>
+
+    <display-name>System Event Tracker</display-name>
+</web-app>
