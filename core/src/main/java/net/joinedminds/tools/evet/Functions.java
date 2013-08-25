@@ -87,4 +87,13 @@ public final class Functions {
         }
         return request.getContextPath();
     }
+
+    public static boolean contains(String needle, String[] haystack) {
+        for (String s : haystack) {
+            if(needle.equals(haystack)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

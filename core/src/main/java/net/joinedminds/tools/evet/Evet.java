@@ -2,12 +2,25 @@ package net.joinedminds.tools.evet;
 
 import com.google.inject.Singleton;
 import com.google.inject.Inject;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.framework.adjunct.AdjunctManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static net.joinedminds.tools.evet.Functions.contains;
+import static net.joinedminds.tools.evet.Functions.isEmpty;
 
 /**
  * Main System object.
@@ -16,7 +29,7 @@ import javax.servlet.ServletContext;
  */
 @Singleton
 public class Evet {
-
+    private static final Logger logger = LoggerFactory.getLogger(Evet.class);
     private ServletContext context;
     private Db db;
     public final AdjunctManager adjuncts;
@@ -32,11 +45,94 @@ public class Evet {
         return adjuncts;
     }
 
+    public void doEndEvent(@QueryParameter(required = true) String id,
+                           @QueryParameter(required = false) String title,
+                           @QueryParameter(required = false) String description,
+                           @QueryParameter(required = false) String[] tags,
+                           StaplerRequest request, StaplerResponse response) throws IOException {
+        Map<String, String> extra = findExtraProperties(Db.RESERVED_NAMES, request);
+        db.updateEventEnd(id, title, description, tags, extra);
+        JSONObject json = new JSONObject();
+        json.put("id", id);
+        response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_ACCEPTED);
+        PrintWriter writer = response.getWriter();
+        writer.println(json.toString());
+        writer.flush();
+    }
+
+    public void doStartEvent(@QueryParameter(required = false) String id,
+                             @QueryParameter(required = true) String system,
+                             @QueryParameter(required = true) String title,
+                             @QueryParameter(required = false) String node,
+                             @QueryParameter(required = false) String description,
+                             @QueryParameter(required = false) String[] tags,
+                             StaplerRequest request, StaplerResponse response) throws IOException {
+        Map<String, String> extra = findExtraProperties(Db.RESERVED_NAMES, request);
+        node = findNode(request, node);
+        String retId = db.addBeginEvent(id, system, title, node, description, tags, extra);
+        if (!Functions.isEmpty(retId)) {
+            JSONObject json = new JSONObject();
+            json.put("id", retId);
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            PrintWriter writer = response.getWriter();
+            writer.println(json.toString());
+            writer.flush();
+        } else {
+            JSONObject json = new JSONObject(true);
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+            PrintWriter writer = response.getWriter();
+            writer.println(json.toString());
+            writer.flush();
+        }
+    }
+
     public void doEvent(@QueryParameter(required = true) String system,
                         @QueryParameter(required = true) String title,
-                        @QueryParameter(required = false) String[] description,
+                        @QueryParameter(required = false) String node,
+                        @QueryParameter(required = false) String description,
                         @QueryParameter(required = false) String[] tags,
-                        StaplerRequest request, StaplerResponse response) {
-        db.addEvent(system, title, description, tags);
+                        StaplerRequest request, StaplerResponse response) throws IOException {
+        Map<String, String> extra = findExtraProperties(Db.RESERVED_NAMES, request);
+        node = findNode(request, node);
+        String id = db.addEvent(system, title, node, description, tags, extra);
+        if (!Functions.isEmpty(id)) {
+            JSONObject json = new JSONObject();
+            json.put("id", id);
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            PrintWriter writer = response.getWriter();
+            writer.println(json.toString());
+            writer.flush();
+        } else {
+            JSONObject json = new JSONObject(true);
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+            PrintWriter writer = response.getWriter();
+            writer.println(json.toString());
+            writer.flush();
+        }
+    }
+
+    private String findNode(StaplerRequest request, String node) {
+        if (!isEmpty(node)) {
+            return node;
+        } else {
+            return request.getRemoteHost();
+        }
+    }
+
+    private Map<String, String> findExtraProperties(List<String> exclude, StaplerRequest request) {
+        Map<String, String> properties = new HashMap<>();
+        Enumeration parameterNames = request.getParameterNames();
+        while (parameterNames.hasMoreElements()) {
+            String name = (String)parameterNames.nextElement();
+            if(!exclude.contains(name)) {
+                properties.put(name, request.getParameter(name));
+            }
+        }
+        return properties;
     }
 }
