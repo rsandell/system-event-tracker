@@ -2,6 +2,9 @@ package net.joinedminds.tools.evet;
 
 import com.google.inject.Singleton;
 import com.google.inject.Inject;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.framework.adjunct.AdjunctManager;
 
 import javax.servlet.ServletContext;
@@ -27,5 +30,13 @@ public class Evet {
 
     public AdjunctManager getAdjuncts() {
         return adjuncts;
+    }
+
+    public void doEvent(@QueryParameter(required = true) String system,
+                        @QueryParameter(required = true) String title,
+                        @QueryParameter(required = false) String[] description,
+                        @QueryParameter(required = false) String[] tags,
+                        StaplerRequest request, StaplerResponse response) {
+        db.addEvent(system, title, description, tags);
     }
 }

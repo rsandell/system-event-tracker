@@ -40,6 +40,14 @@ public final class Functions {
         return str == null || str.isEmpty();
     }
 
+    public static boolean isEmpty(Object[] arr) {
+        if (arr == null) {
+            return true;
+        } else {
+            return arr.length <= 0;
+        }
+    }
+
     public static boolean isTrimmedEmpty(String str) {
         return str == null || (str.isEmpty() || str.trim().isEmpty());
     }
