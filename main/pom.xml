@@ -11,7 +11,7 @@
 
     <parent>
         <groupId>net.joinedminds.tools.evet</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>evet-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
