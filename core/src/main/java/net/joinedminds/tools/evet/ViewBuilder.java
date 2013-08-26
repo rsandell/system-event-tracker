@@ -24,13 +24,13 @@
 
 package net.joinedminds.tools.evet;
 
+import com.google.common.base.Splitter;
 import org.kohsuke.stapler.StaplerResponse;
+import org.koshuke.stapler.simile.timeline.TimelineEventList;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -53,111 +53,112 @@ public class ViewBuilder {
         this.db = db;
     }
 
-    public ViewBuilder doStart(String timestamp) {
+    public ViewBuilder getStart(String timestamp) {
         start = DatatypeConverter.parseDateTime(timestamp);
         ensureStart();
         return this;
     }
 
-    public ViewBuilder doStartHours(int number) {
+    public ViewBuilder getStartHours(String number) {
         ensureStartNow();
-        start.add(Calendar.HOUR_OF_DAY, number);
+        start.add(Calendar.HOUR_OF_DAY, Integer.parseInt(number));
         return this;
     }
 
-    public ViewBuilder doStartDays(int number) {
+    public ViewBuilder getStartDays(String number) {
         ensureStartNow();
-        start.add(Calendar.DAY_OF_YEAR, number);
+        start.add(Calendar.DAY_OF_YEAR, Integer.parseInt(number));
         return this;
     }
 
-    public ViewBuilder doStartWeeks(int number) {
+    public ViewBuilder getStartWeeks(String number) {
         ensureStartNow();
-        start.add(Calendar.WEEK_OF_YEAR, number);
-        return this;
-    }
-    public ViewBuilder doStartMonths(int number) {
-        ensureStartNow();
-        start.add(Calendar.MONTH, number);
+        start.add(Calendar.WEEK_OF_YEAR, Integer.parseInt(number));
         return this;
     }
 
-    public ViewBuilder doStartYears(int number) {
+    public ViewBuilder getStartMonths(String number) {
         ensureStartNow();
-        start.add(Calendar.YEAR, number);
+        start.add(Calendar.MONTH, Integer.parseInt(number));
         return this;
     }
 
-    public ViewBuilder doEnd(String timestamp) {
+    public ViewBuilder getStartYears(String number) {
+        ensureStartNow();
+        start.add(Calendar.YEAR, Integer.parseInt(number));
+        return this;
+    }
+
+    public ViewBuilder getEnd(String timestamp) {
         end = DatatypeConverter.parseDateTime(timestamp);
         ensureEnd();
         return this;
     }
 
-    public ViewBuilder doEndHours(int number) {
+    public ViewBuilder getEndHours(String number) {
         ensureEnd();
-        end.add(Calendar.HOUR_OF_DAY, number);
+        end.add(Calendar.HOUR_OF_DAY, Integer.parseInt(number));
         return this;
     }
 
-    public ViewBuilder doEndDays(int number) {
+    public ViewBuilder getEndDays(String number) {
         ensureEnd();
-        end.add(Calendar.DAY_OF_YEAR, number);
+        end.add(Calendar.DAY_OF_YEAR, Integer.parseInt(number));
         return this;
     }
 
-    public ViewBuilder doEndWeeks(int number) {
+    public ViewBuilder getEndWeeks(String number) {
         ensureEnd();
-        end.add(Calendar.WEEK_OF_YEAR, number);
-        return this;
-    }
-    public ViewBuilder doEndMonths(int number) {
-        ensureEnd();
-        end.add(Calendar.MONTH, number);
+        end.add(Calendar.WEEK_OF_YEAR, Integer.parseInt(number));
         return this;
     }
 
-    public ViewBuilder doEndYears(int number) {
+    public ViewBuilder getEndMonths(String number) {
         ensureEnd();
-        end.add(Calendar.YEAR, number);
+        end.add(Calendar.MONTH, Integer.parseInt(number));
         return this;
     }
 
-    public ViewBuilder doSystems(String[] names) {
+    public ViewBuilder getEndYears(String number) {
+        ensureEnd();
+        end.add(Calendar.YEAR, Integer.parseInt(number));
+        return this;
+    }
+
+    public ViewBuilder getSystems(String names) {
         if (this.systems == null) {
             this.systems = new LinkedHashSet<>();
         }
-        Collections.addAll(systems, names);
+        for (String name : Splitter.on(',').on(' ').omitEmptyStrings().trimResults().split(names)) {
+            systems.add(name);
+        }
         return this;
     }
 
-    public ViewBuilder doTags(String[] names) {
+    public ViewBuilder getTags(String names) {
         if (this.tags == null) {
             this.tags = new LinkedHashSet<>();
         }
-        Collections.addAll(tags, names);
+        for (String name : Splitter.on(',').on(' ').omitEmptyStrings().trimResults().split(names)) {
+            tags.add(name);
+        }
         return this;
     }
 
-    public ViewBuilder doNodes(String[] names) {
+    public ViewBuilder getNodes(String names) {
         if (this.nodes == null) {
             this.nodes = new LinkedHashSet<>();
         }
-        Collections.addAll(nodes, names);
+        for (String name : Splitter.on(',').on(' ').omitEmptyStrings().trimResults().split(names)) {
+            nodes.add(name);
+        }
         return this;
     }
 
-    public void doJson(StaplerResponse response) throws IOException {
+    public TimelineEventList doJson(StaplerResponse response) throws IOException {
         ensureStart();
         ensureEnd();
-        response.setContentType("application/json");
-        PrintWriter writer = response.getWriter();
-        writer.write('{');
-        writer.write("'dateTimeFormat': 'iso8601', ");
-        writer.write("'events': ");
-        db.findEvents(start, end, systems, tags, nodes, writer);
-        writer.write(" }");
-        writer.flush();
+        return db.findEvents(start, end, systems, tags, nodes);
     }
 
     private void ensureEnd() {

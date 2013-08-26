@@ -22,17 +22,26 @@
  * THE SOFTWARE.
  */
 
+
+var SimileAjax = {
+  Platform: {}
+};
+
+
 var tl;
 function onLoad() {
+    var eventSource1 = new Timeline.DefaultEventSource();
     var bandInfos = [
         Timeline.createBandInfo({
             width:          "70%",
             intervalUnit:   Timeline.DateTime.HOUR,
+            eventSource:    eventSource1,
             intervalPixels: 100
         }),
         Timeline.createBandInfo({
             width:          "15%",
             intervalUnit:   Timeline.DateTime.DAY,
+            eventSource:    eventSource1,
             overview:       true,
             intervalPixels: 200
         })
@@ -40,6 +49,7 @@ function onLoad() {
         Timeline.createBandInfo({
             width:          "15%",
             intervalUnit:   Timeline.DateTime.WEEK,
+            eventSource:    eventSource1,
             overview:       true,
             intervalPixels: 200
         })
@@ -49,9 +59,9 @@ function onLoad() {
     bandInfos[2].syncWith = 1;
     bandInfos[2].highlight = true;
     tl = Timeline.create(document.getElementById("the-timeline"), bandInfos);
-    var eventSource = new Timeline.DefaultEventSource();
+
     tl.loadJSON("json", function(json, url) {
-        eventSource.loadJSON(json, url);
+        eventSource1.loadJSON(json, url);
     });
 }
 

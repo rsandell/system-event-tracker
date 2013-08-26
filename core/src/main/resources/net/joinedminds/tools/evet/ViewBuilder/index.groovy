@@ -38,10 +38,10 @@ html {
         st.adjunct(includes: "org.kohsuke.stapler.jquery")
         st.adjunct(includes: "org.kohsuke.stapler.bootstrap-responsive")
         st.adjunct(includes: "org.kohsuke.stapler.fontawesome")
-        st.adjunct(includes: "org.kohsuke.stapler.simile.timeline")
         script(src: "${rootUrl}/js/timeline-view.js", type: "text/javascript")
+        st.adjunct(includes: "org.kohsuke.stapler.simile.timeline")
     }
     body(onload: "onLoad();", onresize: "onResize();") {
-        div(id: "the-timeline", style: "height: 550px; width: 99%; border: 1px solid #aaa")
+        div(id: "the-timeline", style: "height: 450px; width: 100%; margin: 3px; border: 1px solid #aaa")
     }
 }

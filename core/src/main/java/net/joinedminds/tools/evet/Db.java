@@ -39,6 +39,8 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import net.sf.json.JSONObject;
 import org.bson.types.ObjectId;
+import org.koshuke.stapler.simile.timeline.Event;
+import org.koshuke.stapler.simile.timeline.TimelineEventList;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
@@ -73,7 +75,7 @@ public class Db {
     public static final String DURATION_EVENT = "durationEvent";
     public static final String CLASSNAME = "classname";
     public static final String CAPTION = "caption";
-    public static final List<String> RESERVED_NAMES = ImmutableList.of(SYSTEM, ID, DURATION_EVENT, Db.START,
+    public static final List<String> RESERVED_NAMES = ImmutableList.of(SYSTEM, ID, DURATION_EVENT, START,
             TITLE, NODE, DESCRIPTION, TAGS, CLASSNAME, CAPTION, "id");
 
     private final DBCollection collection;
@@ -244,14 +246,13 @@ public class Db {
      * @param systems
      * @param tags
      * @param nodes
-     * @param jsonOut JSON string, an array of events.
      */
-    public void findEvents(Calendar start, Calendar end, Set<String> systems, Set<String> tags, Set<String> nodes, PrintWriter jsonOut) throws IOException {
+    public TimelineEventList findEvents(Calendar start, Calendar end, Set<String> systems, Set<String> tags, Set<String> nodes) throws IOException {
         Preconditions.checkNotNull(start, START);
         Preconditions.checkNotNull(end, END);
         BasicDBObject search = new BasicDBObject();
         search.put(START, new BasicDBObject("$gte", start.getTime()));
-        search.put(END, new BasicDBObject("$lte", end.getTime()));
+        search.put(START, new BasicDBObject("$lte", end.getTime()));
         if (!isEmpty(systems)) {
             search.put(SYSTEM, new BasicDBObject("$in", systems.toArray()));
         }
@@ -263,28 +264,13 @@ public class Db {
         }
 
         DBCursor cursor = collection.find(search);
-        jsonOut.write('[');
+        TimelineEventList list = new TimelineEventList();
         while (cursor.hasNext()) {
             DBObject o = cursor.next();
-            JSONObject json = new JSONObject();
-            for (String key : o.keySet()) {
-                if(START.equals(key)) {
-                    Calendar c = Calendar.getInstance();
-                    c.setTime((Date)o.get(START));
-                    json.put(START, DatatypeConverter.printDateTime(c));
-                } else if(END.equals(key)) {
-                    Calendar c = Calendar.getInstance();
-                    c.setTime((Date)o.get(END));
-                    json.put(END, DatatypeConverter.printDateTime(c));
-                } else if(ID.equals(key)) {
-                    ObjectId id = (ObjectId)o.get(ID);
-                    json.put(ID, id.toString());
-                } else {
-                    json.put(key, o.get(key));
-                }
-            }
-            json.write(jsonOut);
+            list.add(new DbEvent(o));
+
         }
-        jsonOut.write(']');
+        return list;
+
     }
 }

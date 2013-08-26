@@ -5,7 +5,7 @@
 
     <context-param>
         <param-name>DB_HOST</param-name>
-        <param-value>192.168.1.20</param-value>
+        <param-value>localhost</param-value>
         <!--<param-value>localhost</param-value>-->
     </context-param>
     <context-param>
