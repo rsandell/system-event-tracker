@@ -29,12 +29,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.net.JarURLConnection;
 import java.net.URL;
 import java.security.ProtectionDomain;
-import java.util.jar.JarFile;
 
 /**
  * Program Main.
@@ -46,12 +42,14 @@ public class Main {
     public static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
-        final Server server = new Server(8080);
+        int port = getPortSetting();
+        logger.info("Starting up on http port {}", port);
+        final Server server = new Server(port);
         WebAppContext webapp = new WebAppContext();
         webapp.setContextPath("/");
         ProtectionDomain protectionDomain = Main.class.getProtectionDomain();
         URL location = protectionDomain.getCodeSource().getLocation();
-        logger.info("Running with path {}", location);
+        logger.debug("Running with path {}", location);
         webapp.setWar(location.toExternalForm());
         server.setHandler(webapp);
         logger.info("Starting server...");
@@ -59,6 +57,25 @@ public class Main {
         server.setStopAtShutdown(true);
         server.join();
         logger.info("Finished");
+    }
+
+    private static int getPortSetting() {
+        String portStr = System.getProperty("evet.httpPort");
+        if (portStr == null) {
+            portStr = System.getenv("EVET_HTTP_PORT");
+        }
+        if (portStr != null) {
+            int port = 0;
+            try {
+                port = Integer.parseInt(portStr);
+            } catch (NumberFormatException e) {
+                System.err.println("Bad port nr. " + portStr);
+                System.exit(1);
+            }
+            return port;
+        } else {
+            return 8080;
+        }
     }
 
 
