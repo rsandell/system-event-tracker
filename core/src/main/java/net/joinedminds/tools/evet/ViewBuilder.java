@@ -129,7 +129,7 @@ public class ViewBuilder {
         if (this.systems == null) {
             this.systems = new LinkedHashSet<>();
         }
-        for (String name : Splitter.on(',').on(' ').omitEmptyStrings().trimResults().split(names)) {
+        for (String name : Splitter.on(',').omitEmptyStrings().trimResults().split(names)) {
             systems.add(name);
         }
         return this;
@@ -139,7 +139,7 @@ public class ViewBuilder {
         if (this.tags == null) {
             this.tags = new LinkedHashSet<>();
         }
-        for (String name : Splitter.on(',').on(' ').omitEmptyStrings().trimResults().split(names)) {
+        for (String name : Splitter.on(',').omitEmptyStrings().trimResults().split(names)) {
             tags.add(name);
         }
         return this;
@@ -149,7 +149,7 @@ public class ViewBuilder {
         if (this.nodes == null) {
             this.nodes = new LinkedHashSet<>();
         }
-        for (String name : Splitter.on(',').on(' ').omitEmptyStrings().trimResults().split(names)) {
+        for (String name : Splitter.on(',').omitEmptyStrings().trimResults().split(names)) {
             nodes.add(name);
         }
         return this;

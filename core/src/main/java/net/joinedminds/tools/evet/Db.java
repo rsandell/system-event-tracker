@@ -30,27 +30,13 @@ import com.google.common.collect.ObjectArrays;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import net.sf.json.JSONObject;
+import com.mongodb.*;
 import org.bson.types.ObjectId;
-import org.koshuke.stapler.simile.timeline.Event;
 import org.koshuke.stapler.simile.timeline.TimelineEventList;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.UnknownHostException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static net.joinedminds.tools.evet.Functions.cssSanitize;
 import static net.joinedminds.tools.evet.Functions.isEmpty;
@@ -140,13 +126,20 @@ public class Db {
             obj.put(DESCRIPTION, description);
         }
         if (!isEmpty(tags)) {
-            String[] t = (String[])obj.get(TAGS);
-            if (t != null) {
-                tags = ObjectArrays.concat(tags, t, String.class);
+            BasicDBList list = (BasicDBList) obj.get(TAGS);
+            if (list != null) {
+                tags = ObjectArrays.concat(tags, list.toArray(new String[list.size()]), String.class);
             }
             obj.put(TAGS, tags);
+        } else {
+            BasicDBList list = (BasicDBList) obj.get(TAGS);
+            if (list != null) {
+                tags = list.toArray(new String[list.size()]);
+            } else {
+                tags = new String[0];
+            }
         }
-        setClassNameAndCaption(obj, (String)obj.get(SYSTEM), (String)obj.get(NODE), tags);
+        setClassNameAndCaption(obj, (String) obj.get(SYSTEM), (String) obj.get(NODE), tags);
         if (extra != null && extra.size() > 0) {
             for (String key : extra.keySet()) {
                 obj.put(key, extra.get(key));
