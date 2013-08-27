@@ -24,12 +24,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.kohsuke.stapler</groupId>
             <artifactId>stapler</artifactId>
             <version>${stapler.version}</version>
@@ -38,21 +32,6 @@
             <groupId>org.kohsuke.stapler</groupId>
             <artifactId>stapler-groovy</artifactId>
             <version>${stapler.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-jelly</groupId>
-            <artifactId>commons-jelly-tags-fmt</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-jelly</groupId>
-            <artifactId>commons-jelly-tags-define</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-jelly</groupId>
-            <artifactId>commons-jelly-tags-xml</artifactId>
-            <version>1.1</version>
         </dependency>
         <dependency>
             <groupId>servletapi</groupId>
@@ -106,10 +85,10 @@
             <version>1.7.5</version>
         </dependency>
         <dependency>
-            <groupId>net.sf.json-lib</groupId>
+            <groupId>org.kohsuke.stapler</groupId>
             <artifactId>json-lib</artifactId>
-            <version>2.4</version>
-            <classifier>jdk15</classifier>
+            <version>2.1-rev7</version>
+            <!--<classifier>jdk15</classifier>-->
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>
@@ -117,14 +96,14 @@
             <version>3.2.1</version>
             <scope>runtime</scope>
         </dependency>
-        <!--<dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.2.4</version>
-            <scope>compile</scope>
-        </dependency>-->
 
         <!--TEST-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
