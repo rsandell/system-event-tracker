@@ -178,6 +178,18 @@ public class Db {
         return insertStandardEventData(obj, system, title, node, description, tags, extra);
     }
 
+    public String addHistoricalEvent(String system, Date start, Date end, String title, String node, String description, String[] tags, Map<String, String> extra) {
+        Preconditions.checkNotNull(start, START);
+        BasicDBObject obj = new BasicDBObject(START, start);
+        if (end != null) {
+            obj.append(END, end);
+            obj.append(DURATION_EVENT, true);
+        } else {
+            obj.append(DURATION_EVENT, false);
+        }
+        return insertStandardEventData(obj, system, title, node, description, tags, extra);
+    }
+
     private String insertStandardEventData(BasicDBObject obj, String system, String title, String node, String description, String[] tags, Map<String, String> extra) {
         Preconditions.checkNotNull(system, SYSTEM);
         obj.append(SYSTEM, system);

@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -135,6 +136,52 @@ public class Evet {
             PrintWriter writer = response.getWriter();
             writer.println(new JSONObject(true).toString());
             writer.flush();
+        }
+    }
+
+    public void doHistoricalEvent(@QueryParameter(required = true) String system,
+                                  @QueryParameter(required = true) String title,
+                                  @QueryParameter(required = true) String start,
+                                  @QueryParameter(required = false) String end,
+                                  @QueryParameter(required = false) String node,
+                                  @QueryParameter(required = false) String description,
+                                  @QueryParameter(required = false) String[] tags,
+                                  StaplerRequest request, StaplerResponse response) throws IOException {
+        logger.trace("doHistoricalEvent({}, {}, {}, {}, {}, {}, {})", system, title, start, end, node, description,
+                                                                Arrays.toString(tags));
+        Map<String, String> extra = findExtraProperties(Db.RESERVED_NAMES, request);
+        node = findNode(request, node);
+        Date dStart = parseTime(start);
+        Date dEnd = null;
+        if(!isEmpty(end)) {
+            dEnd = parseTime(end);
+        }
+        String id = db.addHistoricalEvent(system, dStart, dEnd, title, node, description, tags, extra);
+        if (!Functions.isEmpty(id)) {
+            JSONObject json = new JSONObject();
+            json.put("id", id);
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            PrintWriter writer = response.getWriter();
+            writer.println(json.toString());
+            writer.flush();
+        } else {
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+            PrintWriter writer = response.getWriter();
+            writer.println(new JSONObject(true).toString());
+            writer.flush();
+        }
+    }
+
+    private Date parseTime(String timestamp) {
+        //First try to see if it is a long and assume it is the unix time.
+        try {
+            long ticks = Long.parseLong(timestamp);
+            return new Date(ticks);
+        } catch (NumberFormatException e) {
+            //Nope, use whatever xsd:timestamp likes (2002-10-10T12:00:00-05:00)
+            return DatatypeConverter.parseDateTime(timestamp).getTime();
         }
     }
 
