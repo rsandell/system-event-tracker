@@ -38,10 +38,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static net.joinedminds.tools.evet.Functions.contains;
 import static net.joinedminds.tools.evet.Functions.isEmpty;
@@ -74,6 +71,7 @@ public class Evet {
                            @QueryParameter(required = false) String description,
                            @QueryParameter(required = false) String[] tags,
                            StaplerRequest request, StaplerResponse response) throws IOException {
+        logger.trace("doEndEvent({}, {}, {}, {})",id, title, description, Arrays.toString(tags));
         Map<String, String> extra = findExtraProperties(Db.RESERVED_NAMES, request);
         db.updateEventEnd(id, title, description, tags, extra);
         JSONObject json = new JSONObject();
@@ -92,6 +90,7 @@ public class Evet {
                              @QueryParameter(required = false) String description,
                              @QueryParameter(required = false) String[] tags,
                              StaplerRequest request, StaplerResponse response) throws IOException {
+        logger.trace("doStartEvent({}, {}, {}, {}, {}, {})", id, system, title, node, description, Arrays.toString(tags));
         Map<String, String> extra = findExtraProperties(Db.RESERVED_NAMES, request);
         node = findNode(request, node);
         String retId = db.addBeginEvent(id, system, title, node, description, tags, extra);
@@ -104,11 +103,10 @@ public class Evet {
             writer.println(json.toString());
             writer.flush();
         } else {
-            JSONObject json = new JSONObject(true);
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
             PrintWriter writer = response.getWriter();
-            writer.println(json.toString());
+            writer.println(new JSONObject(true).toString());
             writer.flush();
         }
     }
@@ -119,6 +117,7 @@ public class Evet {
                         @QueryParameter(required = false) String description,
                         @QueryParameter(required = false) String[] tags,
                         StaplerRequest request, StaplerResponse response) throws IOException {
+        logger.trace("doEvent({}, {}, {}, {}, {})", system, title, node, description, Arrays.toString(tags));
         Map<String, String> extra = findExtraProperties(Db.RESERVED_NAMES, request);
         node = findNode(request, node);
         String id = db.addEvent(system, title, node, description, tags, extra);
@@ -131,11 +130,10 @@ public class Evet {
             writer.println(json.toString());
             writer.flush();
         } else {
-            JSONObject json = new JSONObject(true);
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
             PrintWriter writer = response.getWriter();
-            writer.println(json.toString());
+            writer.println(new JSONObject(true).toString());
             writer.flush();
         }
     }
