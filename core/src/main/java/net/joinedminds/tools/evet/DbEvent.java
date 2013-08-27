@@ -28,38 +28,122 @@ import com.mongodb.BasicDBList;
 import com.mongodb.DBObject;
 import org.koshuke.stapler.simile.timeline.Event;
 
-import java.util.Date;
+import java.util.*;
 
 import static net.joinedminds.tools.evet.Db.*;
 
 /**
- *
  * @author Robert Sandell
  */
-public class DbEvent extends Event {
+public class DbEvent extends Event implements Map<String, Object> {
 
+    public static final String COLOR = "color";
+    public static final String LINK = "link";
     public String id;
     public String system;
     public String[] tags;
     public String node;
     public String caption;
+    private Map<String, Object> map;
 
     public DbEvent(DBObject db) {
+        map = new HashMap<>();
         this.start = (Date) db.get(START);
+        map.put(START, start);
         this.end = (Date) db.get(END);
+        map.put(END, end);
         this.durationEvent = (Boolean) db.get(DURATION_EVENT);
+        map.put(DURATION_EVENT, durationEvent);
         this.title = (String) db.get(TITLE);
+        map.put(TITLE, title);
         this.classname = (String) db.get(CLASSNAME);
-        this.color = (String) db.get("color");
+        map.put(CLASSNAME, classname);
+        this.color = (String) db.get(COLOR);
         this.description = (String) db.get(DESCRIPTION);
-        this.link = (String) db.get(DESCRIPTION);
+        map.put(DESCRIPTION, description);
+        this.link = (String) db.get(LINK);
         this.id = db.get(ID).toString();
+        map.put("id", id);
         this.system = (String) db.get(SYSTEM);
+        map.put(SYSTEM, system);
         BasicDBList tags = (BasicDBList) db.get(TAGS);
         if (tags != null) {
             this.tags = tags.toArray(new String[tags.size()]);
         }
+        map.put(TAGS, tags);
         this.node = (String) db.get(NODE);
+        map.put(NODE, node);
         this.caption = (String) db.get(CAPTION);
+        map.put(CAPTION, caption);
+
+        //Extra properties.
+        for (String key : db.keySet()) {
+            if (!Db.RESERVED_NAMES.contains(key)) {
+                Object o = db.get(key);
+                if (o != null) {
+                    map.put(key, o.toString());
+                }
+            }
+        }
+    }
+
+    @Override
+    public int size() {
+        return map.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return map.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        return map.containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        return map.containsValue(value);
+    }
+
+    @Override
+    public Object get(Object key) {
+        return map.get(key);
+    }
+
+    @Override
+    public Object put(String key, Object value) {
+        throw new IllegalStateException("Immutable");
+    }
+
+    @Override
+    public Object remove(Object key) {
+        throw new IllegalStateException("Immutable");
+    }
+
+    @Override
+    public void putAll(Map<? extends String, ? extends Object> m) {
+        throw new IllegalStateException("Immutable");
+    }
+
+    @Override
+    public void clear() {
+        throw new IllegalStateException("Immutable");
+    }
+
+    @Override
+    public Set<String> keySet() {
+        return map.keySet();
+    }
+
+    @Override
+    public Collection<Object> values() {
+        return map.values();
+    }
+
+    @Override
+    public Set<Entry<String, Object>> entrySet() {
+        return map.entrySet();
     }
 }

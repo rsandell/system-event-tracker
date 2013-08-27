@@ -62,7 +62,7 @@ public class Db {
     public static final String CLASSNAME = "classname";
     public static final String CAPTION = "caption";
     public static final List<String> RESERVED_NAMES = ImmutableList.of(SYSTEM, ID, DURATION_EVENT, START,
-            TITLE, NODE, DESCRIPTION, TAGS, CLASSNAME, CAPTION, "id");
+            END, TITLE, NODE, DESCRIPTION, TAGS, CLASSNAME, CAPTION, "id");
 
     private final DBCollection collection;
     private String dbHost;
