@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ObjectArrays;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.mongodb.*;
@@ -66,7 +67,7 @@ public class Db {
 
     private final DBCollection collection;
     private String dbHost;
-    private Integer dbPort;
+    private Provider<Integer> dbPort;
     private String dbName;
     private String dbUser;
     private String dbPasswd;
@@ -74,7 +75,7 @@ public class Db {
     private final DB db;
 
     @Inject
-    public Db(@Named("DB_HOST") String dbHost, @Named("DB_PORT") Integer dbPort, @Named("DB_NAME") String dbName,
+    public Db(@Named("DB_HOST") String dbHost, @Named("DB_PORT") Provider<Integer> dbPort, @Named("DB_NAME") String dbName,
               @Named("DB_USER") String dbUser, @Named("DB_PASSWD") String dbPasswd) throws UnknownHostException {
         this.dbHost = dbHost;
         this.dbPort = dbPort;
@@ -88,8 +89,8 @@ public class Db {
             connStr.append(dbUser).append(":").append(dbPasswd);
         }
         connStr.append(dbHost);
-        if (dbPort != null) {
-            connStr.append(":").append(dbPort);
+        if (dbPort.get() != null) {
+            connStr.append(":").append(dbPort.get());
         }
         connStr.append("/").append(dbName);
 

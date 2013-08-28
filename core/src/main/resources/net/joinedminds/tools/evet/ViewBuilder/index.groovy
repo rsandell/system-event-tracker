@@ -32,7 +32,7 @@ st.header(name: "Expires", value: "0")
 st.header(name: "Cache-Control", value: "no-cache,must-revalidate")
 st.contentType(value: "text/html;charset=UTF-8")
 
-html {
+html(height: "100%") {
     head {
         title("Event Timeline")
         st.adjunct(includes: "org.kohsuke.stapler.jquery")
@@ -41,7 +41,18 @@ html {
         script(src: "${rootUrl}/js/timeline-view.js", type: "text/javascript")
         st.adjunct(includes: "org.kohsuke.stapler.simile.timeline")
     }
-    body(onload: "onLoad();", onresize: "onResize();") {
-        div(id: "the-timeline", style: "height: 450px; width: 100%; margin: 3px; border: 1px solid #aaa")
+    body(onload: "onLoad();", onresize: "onResize();", height: "100%") {
+        div(class: "container-fluid") {
+            div(class: "row-fluid", style: "height: 100%;") {
+                div(class: "span2", style: "height: 100%") {
+                    p("Ping")
+                }
+                div(class: "span10", style: "height: 100%") {
+                    div(id: "the-timeline", style: "height: 99%; width: 100%; margin: 3px; border: 1px solid #aaa")
+                }
+            }
+        }
+
+
     }
 }

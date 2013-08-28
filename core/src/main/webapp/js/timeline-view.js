@@ -33,31 +33,41 @@ function onLoad() {
     var eventSource1 = new Timeline.DefaultEventSource();
     var bandInfos = [
         Timeline.createBandInfo({
-            width:          "70%",
+            width:          "80%",
             intervalUnit:   Timeline.DateTime.HOUR,
             eventSource:    eventSource1,
             intervalPixels: 100
         }),
         Timeline.createBandInfo({
-            width:          "15%",
+            width:          "8%",
             intervalUnit:   Timeline.DateTime.DAY,
             eventSource:    eventSource1,
             overview:       true,
-            intervalPixels: 200
+            intervalPixels: 100
         })
         ,
         Timeline.createBandInfo({
-            width:          "15%",
+            width:          "6%",
             intervalUnit:   Timeline.DateTime.WEEK,
             eventSource:    eventSource1,
             overview:       true,
-            intervalPixels: 200
+            intervalPixels: 70
+        })
+        ,
+        Timeline.createBandInfo({
+            width:          "6%",
+            intervalUnit:   Timeline.DateTime.MONTH,
+            eventSource:    eventSource1,
+            overview:       true,
+            intervalPixels: 50
         })
     ];
     bandInfos[1].syncWith = 0;
     bandInfos[1].highlight = true;
     bandInfos[2].syncWith = 1;
     bandInfos[2].highlight = true;
+    bandInfos[3].syncWith = 2;
+    bandInfos[3].highlight = true;
     tl = Timeline.create(document.getElementById("the-timeline"), bandInfos);
 
     tl.loadJSON("json", function(json, url) {

@@ -26,6 +26,7 @@ package net.joinedminds.tools.evet;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+import com.google.inject.util.Providers;
 
 import javax.servlet.ServletContext;
 
@@ -56,7 +57,7 @@ public class GuiceModule extends AbstractModule {
     protected void configure() {
         bind(ServletContext.class).toInstance(context);
         bind(String.class).annotatedWith(Names.named("DB_HOST")).toInstance(dbHost);
-        bind(Integer.class).annotatedWith(Names.named("DB_PORT")).toInstance(dbPort);
+        bind(Integer.class).annotatedWith(Names.named("DB_PORT")).toProvider(Providers.of(dbPort));
         bind(String.class).annotatedWith(Names.named("DB_NAME")).toInstance(dbName);
         bind(String.class).annotatedWith(Names.named("DB_USER")).toInstance(dbUser);
         bind(String.class).annotatedWith(Names.named("DB_PASSWD")).toInstance(dbPasswd);
