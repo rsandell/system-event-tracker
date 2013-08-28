@@ -38,13 +38,15 @@ public class GuiceModule extends AbstractModule {
 
     private ServletContext context;
     private String dbHost;
+    private Integer dbPort;
     private String dbName;
     private String dbUser;
     private String dbPasswd;
 
-    public GuiceModule(ServletContext context, String dbHost, String dbName, String dbUser, String dbPasswd) {
+    public GuiceModule(ServletContext context, String dbHost, Integer dbPort, String dbName, String dbUser, String dbPasswd) {
         this.context = context;
         this.dbHost = dbHost;
+        this.dbPort = dbPort;
         this.dbName = dbName;
         this.dbUser = dbUser;
         this.dbPasswd = dbPasswd;
@@ -54,6 +56,7 @@ public class GuiceModule extends AbstractModule {
     protected void configure() {
         bind(ServletContext.class).toInstance(context);
         bind(String.class).annotatedWith(Names.named("DB_HOST")).toInstance(dbHost);
+        bind(Integer.class).annotatedWith(Names.named("DB_PORT")).toInstance(dbPort);
         bind(String.class).annotatedWith(Names.named("DB_NAME")).toInstance(dbName);
         bind(String.class).annotatedWith(Names.named("DB_USER")).toInstance(dbUser);
         bind(String.class).annotatedWith(Names.named("DB_PASSWD")).toInstance(dbPasswd);

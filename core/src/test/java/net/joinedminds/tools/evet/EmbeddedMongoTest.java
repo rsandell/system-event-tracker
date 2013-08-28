@@ -48,8 +48,8 @@ import java.io.IOException;
  */
 public abstract class EmbeddedMongoTest {
 
-    private static final String LOCALHOST = "127.0.0.1";
-    private static final String DB_NAME = "evettest";
+    public static final String LOCALHOST = "127.0.0.1";
+    public static final String DB_NAME = "evettest";
 
     private static String mongoURL = System.getProperty(EmbeddedMongoTest.class.getName() + ".mongoURL");
 

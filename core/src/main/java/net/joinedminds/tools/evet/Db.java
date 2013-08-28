@@ -66,6 +66,7 @@ public class Db {
 
     private final DBCollection collection;
     private String dbHost;
+    private Integer dbPort;
     private String dbName;
     private String dbUser;
     private String dbPasswd;
@@ -73,9 +74,10 @@ public class Db {
     private final DB db;
 
     @Inject
-    public Db(@Named("DB_HOST") String dbHost, @Named("DB_NAME") String dbName,
+    public Db(@Named("DB_HOST") String dbHost, @Named("DB_PORT") Integer dbPort, @Named("DB_NAME") String dbName,
               @Named("DB_USER") String dbUser, @Named("DB_PASSWD") String dbPasswd) throws UnknownHostException {
         this.dbHost = dbHost;
+        this.dbPort = dbPort;
         this.dbName = dbName;
         this.dbUser = dbUser;
         this.dbPasswd = dbPasswd;
@@ -85,7 +87,11 @@ public class Db {
         if (!isEmpty(dbUser)) {
             connStr.append(dbUser).append(":").append(dbPasswd);
         }
-        connStr.append(dbHost).append("/").append(dbName);
+        connStr.append(dbHost);
+        if (dbPort != null) {
+            connStr.append(":").append(dbPort);
+        }
+        connStr.append("/").append(dbName);
 
         MongoClientURI uri = new MongoClientURI(connStr.toString());
         mongo = new MongoClient(uri);
@@ -128,7 +134,12 @@ public class Db {
         if (!isEmpty(tags)) {
             BasicDBList list = (BasicDBList) obj.get(TAGS);
             if (list != null) {
-                tags = ObjectArrays.concat(tags, list.toArray(new String[list.size()]), String.class);
+                Set<String> ts = new HashSet<>();
+                for(Object o : list) {
+                    ts.add(o.toString());
+                }
+                Collections.addAll(ts, tags);
+                tags = ts.toArray(new String[ts.size()]);
             }
             obj.put(TAGS, tags);
         } else {
