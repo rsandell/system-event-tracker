@@ -268,8 +268,21 @@ public class Db {
         Preconditions.checkNotNull(start, START);
         Preconditions.checkNotNull(end, END);
         BasicDBObject search = new BasicDBObject();
-        search.put(START, new BasicDBObject("$gte", start.getTime()));
-        search.put(START, new BasicDBObject("$lte", end.getTime()));
+
+        //(e.start >= my.start || (e.end != null && e.end >= my.start)) && e.start <= my.end
+        //TODO This isn't working!!
+        /*DBObject time = QueryBuilder.start().and(
+                QueryBuilder.start().or(
+                        QueryBuilder.start(START).greaterThanEquals(start.getTime()).get(),
+                        QueryBuilder.start().and(
+                                QueryBuilder.start().exists(END).get(),
+                                QueryBuilder.start(END).greaterThanEquals(start.getTime()).get()
+                        ).get()
+                ).get(),
+                QueryBuilder.start(START).lessThanEquals(end.getTime()).get()
+        ).get();
+
+        search.putAll(time);*/
         if (!isEmpty(systems)) {
             search.put(SYSTEM, new BasicDBObject("$in", systems.toArray()));
         }
