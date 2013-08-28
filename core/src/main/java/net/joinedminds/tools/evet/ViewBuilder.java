@@ -34,6 +34,8 @@ import java.util.Calendar;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import static net.joinedminds.tools.evet.Functions.ifNull;
+
 /**
  * Builder for displaying a time line view.
  *
@@ -47,81 +49,119 @@ public class ViewBuilder {
     private Set<String> systems;
     private Set<String> tags;
     private Set<String> nodes;
+    private FormData formData;
 
 
     public ViewBuilder(Db db) {
         this.db = db;
+        formData = new FormData();
+    }
+
+    public String startString() {
+        if (start == null) {
+            return DatatypeConverter.printDateTime(defaultStart());
+        }
+        return DatatypeConverter.printDateTime(start);
+    }
+
+    public String endString() {
+        if (end == null) {
+            return DatatypeConverter.printDateTime(defaultEnd());
+        }
+        return DatatypeConverter.printDateTime(end);
     }
 
     public ViewBuilder getStart(String timestamp) {
         start = DatatypeConverter.parseDateTime(timestamp);
+        formData.start = (Calendar)start.clone();
         ensureStart();
         return this;
     }
 
     public ViewBuilder getStartHours(String number) {
         ensureStartNow();
-        start.add(Calendar.HOUR_OF_DAY, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        start.add(Calendar.HOUR_OF_DAY, amount);
+        formData.startHours += amount;
         return this;
     }
 
     public ViewBuilder getStartDays(String number) {
         ensureStartNow();
-        start.add(Calendar.DAY_OF_YEAR, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        start.add(Calendar.DAY_OF_YEAR, amount);
+        formData.startDays += amount;
         return this;
     }
 
     public ViewBuilder getStartWeeks(String number) {
         ensureStartNow();
-        start.add(Calendar.WEEK_OF_YEAR, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        start.add(Calendar.WEEK_OF_YEAR, amount);
+        formData.startWeeks += amount;
         return this;
     }
 
     public ViewBuilder getStartMonths(String number) {
         ensureStartNow();
-        start.add(Calendar.MONTH, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        start.add(Calendar.MONTH, amount);
+        formData.startMonths += amount;
         return this;
     }
 
     public ViewBuilder getStartYears(String number) {
         ensureStartNow();
-        start.add(Calendar.YEAR, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        start.add(Calendar.YEAR, amount);
+        formData.startYears += amount;
         return this;
     }
 
     public ViewBuilder getEnd(String timestamp) {
         end = DatatypeConverter.parseDateTime(timestamp);
+        formData.end = (Calendar)end.clone();
         ensureEnd();
         return this;
     }
 
     public ViewBuilder getEndHours(String number) {
         ensureEnd();
-        end.add(Calendar.HOUR_OF_DAY, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        end.add(Calendar.HOUR_OF_DAY, amount);
+        formData.endHours += amount;
         return this;
     }
 
     public ViewBuilder getEndDays(String number) {
         ensureEnd();
-        end.add(Calendar.DAY_OF_YEAR, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        end.add(Calendar.DAY_OF_YEAR, amount);
+        formData.endDays += amount;
         return this;
     }
 
     public ViewBuilder getEndWeeks(String number) {
         ensureEnd();
-        end.add(Calendar.WEEK_OF_YEAR, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        end.add(Calendar.WEEK_OF_YEAR, amount);
+        formData.endWeeks += amount;
         return this;
     }
 
     public ViewBuilder getEndMonths(String number) {
         ensureEnd();
-        end.add(Calendar.MONTH, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        end.add(Calendar.MONTH, amount);
+        formData.endMonths += amount;
         return this;
     }
 
     public ViewBuilder getEndYears(String number) {
         ensureEnd();
-        end.add(Calendar.YEAR, Integer.parseInt(number));
+        int amount = Integer.parseInt(number);
+        end.add(Calendar.YEAR, amount);
+        formData.endYears += amount;
         return this;
     }
 
@@ -163,21 +203,64 @@ public class ViewBuilder {
 
     private void ensureEnd() {
         if (end == null) {
-            end = Calendar.getInstance();
+            end = defaultEnd();
+            formData.end = (Calendar)end.clone();
         }
+    }
+
+    private Calendar defaultEnd() {
+        return Calendar.getInstance();
     }
 
     private void ensureStart() {
         if (start == null) {
-            Calendar c = Calendar.getInstance();
-            c.add(Calendar.DAY_OF_MONTH, DEFAULT_START_DAYS);
-            start = c;
+            start = defaultStart();
+            formData.start = (Calendar)start.clone();
         }
+    }
+
+    public Calendar defaultStart() {
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.DAY_OF_MONTH, DEFAULT_START_DAYS);
+        return c;
     }
 
     private void ensureStartNow() {
         if (start == null) {
             start = Calendar.getInstance();
+            formData.start = (Calendar)start.clone();
+        }
+    }
+
+    /**
+     * A class to keep track of the user request to show in the form.
+     */
+    static class FormData {
+        Calendar start;
+        public int startHours = 0;
+        public int startDays = 0;
+        public int startWeeks = 0;
+        public int startMonths = 0;
+        public int startYears = 0;
+        Calendar end;
+        public int endHours = 0;
+        public int endDays = 0;
+        public int endWeeks = 0;
+        public int endMonths = 0;
+        public int endYears = 0;
+
+        public String startString() {
+            if (start == null) {
+                return "";
+            }
+            return DatatypeConverter.printDateTime(start);
+        }
+
+        public String endString() {
+            if (end == null) {
+                return "";
+            }
+            return DatatypeConverter.printDateTime(end);
         }
     }
 }

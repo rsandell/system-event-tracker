@@ -1,4 +1,6 @@
+import com.google.common.base.Joiner
 import net.joinedminds.tools.evet.Functions
+import net.joinedminds.tools.evet.ViewBuilder
 
 /*
  * The MIT License
@@ -26,6 +28,8 @@ import net.joinedminds.tools.evet.Functions
 
 def st = namespace("jelly:stapler")
 
+ViewBuilder view = my
+
 String rootUrl = Functions.rootUrl
 
 st.header(name: "Expires", value: "0")
@@ -40,19 +44,63 @@ html(height: "100%") {
         st.adjunct(includes: "org.kohsuke.stapler.fontawesome")
         script(src: "${rootUrl}/js/timeline-view.js", type: "text/javascript")
         st.adjunct(includes: "org.kohsuke.stapler.simile.timeline")
+        link(rel: "stylesheet", href: "${rootUrl}/style.css")
     }
     body(onload: "onLoad();", onresize: "onResize();", height: "100%") {
         div(class: "container-fluid") {
             div(class: "row-fluid", style: "height: 100%;") {
-                div(class: "span2", style: "height: 100%") {
-                    p("Ping")
+                div(class: "span2", style: "height: 100%", id: "menu") {
+                    div(class: "row-fluid", id: "calculated") {
+                        div (class: "span2") {
+                            strong("From: ")
+                            span(view.startString())
+                            br()
+                            strong("To: ")
+                            span(view.endString())
+                        }
+                    }
+                    form {
+                        fieldset {
+                            legend("Start")
+                            label("Timestamp")
+                            input(type: "text", name: "start", value: view.formData.startString())
+                            label("Hours")
+                            input(type: "number", name: "startHours", value: view.formData.startHours)
+                            label("Days")
+                            input(type: "number", name: "startDays", value: view.formData.startDays)
+                            label("Weeks")
+                            input(type: "number", name: "startWeeks", value: view.formData.startWeeks)
+                            label("Months")
+                            input(type: "number", name: "startMonths", value: view.formData.startMonths)
+                            label("Years")
+                            input(type: "number", name: "startYears", value: view.formData.startYears)
+                            legend("End")
+                            label("Timestamp")
+                            input(type: "text", name: "end", value: view.formData.endString())
+                            label("Hours")
+                            input(type: "number", name: "endHours", value: view.formData.endHours)
+                            label("Days")
+                            input(type: "number", name: "endDays", value: view.formData.endDays)
+                            label("Weeks")
+                            input(type: "number", name: "endWeeks", value: view.formData.endWeeks)
+                            label("Months")
+                            input(type: "number", name: "endMonths", value: view.formData.endMonths)
+                            label("Years")
+                            input(type: "number", name: "endYears", value: view.formData.endYears)
+                            legend("Data")
+                            label("Systems")
+                            input(type: "text", name: "systems", value: view.systems?.join(","))
+                            label("Tags")
+                            input(type: "text", name: "tags", value: view.tags?.join(","))
+                            label("Nodes")
+                            input(type: "text", name: "nodes", value: view.nodes?.join(","))
+                        }
+                    }
                 }
                 div(class: "span10", style: "height: 100%") {
                     div(id: "the-timeline", style: "height: 99%; width: 100%; margin: 3px; border: 1px solid #aaa")
                 }
             }
         }
-
-
     }
 }
