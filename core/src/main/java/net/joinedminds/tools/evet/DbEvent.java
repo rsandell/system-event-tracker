@@ -28,9 +28,23 @@ import com.mongodb.BasicDBList;
 import com.mongodb.DBObject;
 import org.koshuke.stapler.simile.timeline.Event;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-import static net.joinedminds.tools.evet.Db.*;
+import static net.joinedminds.tools.evet.Db.CAPTION;
+import static net.joinedminds.tools.evet.Db.CLASSNAME;
+import static net.joinedminds.tools.evet.Db.DESCRIPTION;
+import static net.joinedminds.tools.evet.Db.DURATION_EVENT;
+import static net.joinedminds.tools.evet.Db.END;
+import static net.joinedminds.tools.evet.Db.ID;
+import static net.joinedminds.tools.evet.Db.NODE;
+import static net.joinedminds.tools.evet.Db.START;
+import static net.joinedminds.tools.evet.Db.SYSTEM;
+import static net.joinedminds.tools.evet.Db.TAGS;
+import static net.joinedminds.tools.evet.Db.TITLE;
 
 /**
  * @author Robert Sandell
@@ -48,32 +62,32 @@ public class DbEvent extends Event implements Map<String, Object> {
 
     public DbEvent(DBObject db) {
         map = new HashMap<>();
-        this.start = (Date) db.get(START);
+        this.start = (Date)db.get(START);
         map.put(START, start);
-        this.end = (Date) db.get(END);
+        this.end = (Date)db.get(END);
         map.put(END, end);
-        this.durationEvent = (Boolean) db.get(DURATION_EVENT);
+        this.durationEvent = (Boolean)db.get(DURATION_EVENT);
         map.put(DURATION_EVENT, durationEvent);
-        this.title = (String) db.get(TITLE);
+        this.title = (String)db.get(TITLE);
         map.put(TITLE, title);
-        this.classname = (String) db.get(CLASSNAME);
+        this.classname = (String)db.get(CLASSNAME);
         map.put(CLASSNAME, classname);
-        this.color = (String) db.get(COLOR);
-        this.description = (String) db.get(DESCRIPTION);
+        this.color = (String)db.get(COLOR);
+        this.description = (String)db.get(DESCRIPTION);
         map.put(DESCRIPTION, description);
-        this.link = (String) db.get(LINK);
+        this.link = (String)db.get(LINK);
         this.id = db.get(ID).toString();
         map.put("id", id);
-        this.system = (String) db.get(SYSTEM);
+        this.system = (String)db.get(SYSTEM);
         map.put(SYSTEM, system);
-        BasicDBList tags = (BasicDBList) db.get(TAGS);
+        BasicDBList tags = (BasicDBList)db.get(TAGS);
         if (tags != null) {
             this.tags = tags.toArray(new String[tags.size()]);
         }
         map.put(TAGS, tags);
-        this.node = (String) db.get(NODE);
+        this.node = (String)db.get(NODE);
         map.put(NODE, node);
-        this.caption = (String) db.get(CAPTION);
+        this.caption = (String)db.get(CAPTION);
         map.put(CAPTION, caption);
 
         //Extra properties.
@@ -84,6 +98,12 @@ public class DbEvent extends Event implements Map<String, Object> {
                     map.put(key, o.toString());
                 }
             }
+        }
+
+        if (end == null && durationEvent) {
+            map.put(END, new Date());
+            map.put("tapeImage", Functions.getSafeRootUrl() + "/img/gray-striped.png");
+            map.put("tapeRepeat", "repeat-x");
         }
     }
 

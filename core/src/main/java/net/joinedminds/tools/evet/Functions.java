@@ -98,6 +98,15 @@ public final class Functions {
         return request.getContextPath();
     }
 
+    public static String getSafeRootUrl() {
+        StaplerRequest request = Stapler.getCurrentRequest();
+        if (request == null) {
+            return "";
+        } else {
+            return request.getContextPath();
+        }
+    }
+
     public static boolean contains(String needle, String[] haystack) {
         for (String s : haystack) {
             if(needle.equals(haystack)) {
