@@ -26,18 +26,32 @@ package net.joinedminds.tools.evet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ObjectArrays;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import com.mongodb.*;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
+import com.mongodb.QueryBuilder;
 import org.bson.types.ObjectId;
 import org.koshuke.stapler.simile.timeline.TimelineEventList;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static net.joinedminds.tools.evet.Functions.cssSanitize;
 import static net.joinedminds.tools.evet.Functions.isEmpty;
@@ -133,10 +147,10 @@ public class Db {
             obj.put(DESCRIPTION, description);
         }
         if (!isEmpty(tags)) {
-            BasicDBList list = (BasicDBList) obj.get(TAGS);
+            BasicDBList list = (BasicDBList)obj.get(TAGS);
             if (list != null) {
                 Set<String> ts = new HashSet<>();
-                for(Object o : list) {
+                for (Object o : list) {
                     ts.add(o.toString());
                 }
                 Collections.addAll(ts, tags);
@@ -144,14 +158,14 @@ public class Db {
             }
             obj.put(TAGS, tags);
         } else {
-            BasicDBList list = (BasicDBList) obj.get(TAGS);
+            BasicDBList list = (BasicDBList)obj.get(TAGS);
             if (list != null) {
                 tags = list.toArray(new String[list.size()]);
             } else {
                 tags = new String[0];
             }
         }
-        setClassNameAndCaption(obj, (String) obj.get(SYSTEM), (String) obj.get(NODE), tags);
+        setClassNameAndCaption(obj, (String)obj.get(SYSTEM), (String)obj.get(NODE), tags);
         if (extra != null && extra.size() > 0) {
             for (String key : extra.keySet()) {
                 obj.put(key, extra.get(key));
@@ -267,40 +281,78 @@ public class Db {
     public TimelineEventList findEvents(Calendar start, Calendar end, Set<String> systems, Set<String> tags, Set<String> nodes) throws IOException {
         Preconditions.checkNotNull(start, START);
         Preconditions.checkNotNull(end, END);
-        BasicDBObject search = new BasicDBObject();
+        String[] systemsArr = null;
+        String[] nodesArr = null;
+        String[] tagsArr = null;
 
-        //(e.start >= my.start || (e.end != null && e.end >= my.start)) && e.start <= my.end
-        //TODO This isn't working!!
-        /*DBObject time = QueryBuilder.start().and(
-                QueryBuilder.start().or(
-                        QueryBuilder.start(START).greaterThanEquals(start.getTime()).get(),
-                        QueryBuilder.start().and(
-                                QueryBuilder.start().exists(END).get(),
-                                QueryBuilder.start(END).greaterThanEquals(start.getTime()).get()
-                        ).get()
-                ).get(),
-                QueryBuilder.start(START).lessThanEquals(end.getTime()).get()
-        ).get();
-
-        search.putAll(time);*/
         if (!isEmpty(systems)) {
-            search.put(SYSTEM, new BasicDBObject("$in", systems.toArray()));
+            systemsArr = systems.toArray(new String[systems.size()]);
         }
         if (!isEmpty(nodes)) {
-            search.put(NODE, new BasicDBObject("$in", nodes.toArray()));
+            nodesArr = nodes.toArray(new String[nodes.size()]);
         }
         if (!isEmpty(tags)) {
-            search.put(TAGS, new BasicDBObject("$in", tags.toArray()));
+            tagsArr = tags.toArray(new String[tags.size()]);
         }
 
-        DBCursor cursor = collection.find(search);
+        Set<DbEvent> events = Sets.newHashSet();
+        for (DBObject timeSearch : timeSearches(start, end)) {
+            BasicDBObject search = new BasicDBObject();
+
+            search.putAll(timeSearch);
+            if (systemsArr != null) {
+                search.put(SYSTEM, new BasicDBObject("$in", systemsArr));
+            }
+            if (nodesArr != null) {
+                search.put(NODE, new BasicDBObject("$in", nodesArr));
+            }
+            if (tagsArr != null) {
+                search.put(TAGS, new BasicDBObject("$in", tagsArr));
+            }
+
+            DBCursor cursor = collection.find(search);
+
+            while (cursor.hasNext()) {
+                DBObject o = cursor.next();
+                events.add(new DbEvent(o));
+
+            }
+        }
         TimelineEventList list = new TimelineEventList();
-        while (cursor.hasNext()) {
-            DBObject o = cursor.next();
-            list.add(new DbEvent(o));
-
-        }
+        list.addAll(events);
         return list;
 
+    }
+
+    private List<DBObject> timeSearches(Calendar start, Calendar end) {
+        return ImmutableList.of(
+                oneShotEventsSearch(start, end),
+                durationEventsStartedWithin(start, end),
+                durationEventEndedWithin(start, end),
+                durationEventRunningThrough(start, end));
+    }
+
+    private DBObject oneShotEventsSearch(Calendar start, Calendar end) {
+        return QueryBuilder.start(DURATION_EVENT).is(false).
+                and(START).greaterThanEquals(start.getTime()).
+                and(START).lessThanEquals(end.getTime()).get();
+    }
+
+    private DBObject durationEventsStartedWithin(Calendar start, Calendar end) {
+        return QueryBuilder.start(DURATION_EVENT).is(true).
+                and(START).greaterThanEquals(start.getTime()).
+                and(START).lessThanEquals(end.getTime()).get();
+    }
+
+    private DBObject durationEventEndedWithin(Calendar start, Calendar end) {
+        return QueryBuilder.start(DURATION_EVENT).is(true).
+                and(END).greaterThanEquals(start.getTime()).
+                and(END).lessThanEquals(end.getTime()).get();
+    }
+
+    private DBObject durationEventRunningThrough(Calendar start, Calendar end) {
+        return QueryBuilder.start(DURATION_EVENT).is(true).
+                and(START).lessThan(start.getTime()).
+                and(END).greaterThan(end.getTime()).get();
     }
 }

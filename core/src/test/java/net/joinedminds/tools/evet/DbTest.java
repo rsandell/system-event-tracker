@@ -119,6 +119,39 @@ public class DbTest extends EmbeddedMongoTest {
 
     @Test
     public void testAddHistoricalEvent() throws Exception {
+        Map<String, String> extra = new HashMap<>();
+        extra.put("help", "me");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.HOUR_OF_DAY, -1);
+        String id = db.addHistoricalEvent("JUnit", c.getTime(), null,
+                "testAddEvent", "localhost", null, new String[]{"test", "mongo"}, extra);
 
+        c = Calendar.getInstance();
+        c.add(Calendar.DAY_OF_MONTH, -1);
+        TimelineEventList events = db.findEvents(c, Calendar.getInstance(), null, null, null);
+        assertEquals(1, events.size());
+        DbEvent event = (DbEvent) events.get(0);
+        assertEquals(id, event.id);
+        assertNull(event.end);
+        assertNotNull(event.start);
+        assertFalse(event.durationEvent);
+        assertEquals(2, event.tags.length);
+        assertNotNull(event.get("help"));
+        assertEquals("me", event.get("help"));
+    }
+
+    @Test
+    public void testAddHistoricalEventBefore() throws Exception {
+        Map<String, String> extra = new HashMap<>();
+        extra.put("help", "me");
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.DAY_OF_MONTH, -2);
+        String id = db.addHistoricalEvent("JUnit", c.getTime(), null,
+                "testAddEvent", "localhost", null, new String[]{"test", "mongo"}, extra);
+
+        c = Calendar.getInstance();
+        c.add(Calendar.DAY_OF_MONTH, -1);
+        TimelineEventList events = db.findEvents(c, Calendar.getInstance(), null, null, null);
+        assertEquals(0, events.size());
     }
 }

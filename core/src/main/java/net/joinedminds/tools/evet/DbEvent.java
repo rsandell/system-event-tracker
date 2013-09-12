@@ -146,4 +146,21 @@ public class DbEvent extends Event implements Map<String, Object> {
     public Set<Entry<String, Object>> entrySet() {
         return map.entrySet();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DbEvent dbEvent = (DbEvent)o;
+
+        if (id != null ? !id.equals(dbEvent.id) : dbEvent.id != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }
