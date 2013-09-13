@@ -45,7 +45,7 @@ html(height: "100%") {
             raw("var rootUrl = '${rootUrl}';")
         }
         script(src: "${rootUrl}/js/filter-form.js", type: "text/javascript")
-        st.include(it: my, page: "head.groovy")
+        st.include(it: my, page: "head.groovy", optional: true)
         link(rel: "stylesheet", href: "${rootUrl}/style.css")
     }
     body(onload: "onLoad();", onresize: "onResize();", height: "100%") {

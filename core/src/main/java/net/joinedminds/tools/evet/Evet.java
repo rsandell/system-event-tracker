@@ -189,6 +189,10 @@ public class Evet {
         return new TimelineViewBuilder(db);
     }
 
+    public TimePlotViewBuilder getPlot() {
+        return new TimePlotViewBuilder(db);
+    }
+
     private String findNode(StaplerRequest request, String node) {
         if (!isEmpty(node)) {
             return node;

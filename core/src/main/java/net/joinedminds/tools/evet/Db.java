@@ -31,27 +31,13 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
-import com.mongodb.QueryBuilder;
+import com.mongodb.*;
 import org.bson.types.ObjectId;
 import org.koshuke.stapler.simile.timeline.TimelineEventList;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static net.joinedminds.tools.evet.Functions.cssSanitize;
 import static net.joinedminds.tools.evet.Functions.isEmpty;
@@ -322,6 +308,68 @@ public class Db {
         list.addAll(events);
         return list;
 
+    }
+
+    public List<Map.Entry<Date, Integer>> countEvents(Calendar start, Calendar end, Set<String> systems, Set<String> tags, Set<String> nodes) {
+        Preconditions.checkNotNull(start, START);
+        Preconditions.checkNotNull(end, END);
+        String[] systemsArr = null;
+        String[] nodesArr = null;
+        String[] tagsArr = null;
+
+        if (!isEmpty(systems)) {
+            systemsArr = systems.toArray(new String[systems.size()]);
+        }
+        if (!isEmpty(nodes)) {
+            nodesArr = nodes.toArray(new String[nodes.size()]);
+        }
+        if (!isEmpty(tags)) {
+            tagsArr = tags.toArray(new String[tags.size()]);
+        }
+
+        List<DBObject> times = timeSearches(start, end);
+        QueryBuilder builder = QueryBuilder.start().or(times.toArray(new DBObject[times.size()]));
+
+        if (systemsArr != null) {
+            builder = builder.and(SYSTEM).in(systemsArr);
+        }
+        if (nodesArr != null) {
+            builder = builder.and(NODE).in(nodesArr);
+        }
+        if (tagsArr != null) {
+            builder = builder.and(TAGS).in(tagsArr);
+        }
+
+        BasicDBObject modify = new BasicDBObject();
+        modify.put("startYear", new BasicDBObject("$year", "$start"));
+        modify.put("startMonth", new BasicDBObject("$month", "$start"));
+        modify.put("startDay", new BasicDBObject("$dayOfMonth", "$start"));
+
+        BasicDBObject groupNames = new BasicDBObject();
+        groupNames.put("startYear", "$startYear");
+        groupNames.put("startMonth", "$startMonth");
+        groupNames.put("startDay", "$startDay");
+
+        BasicDBObject group = new BasicDBObject("_id", groupNames);
+        group.put("total", new BasicDBObject("$sum", 1));
+
+        AggregationOutput output = collection.aggregate(
+                new BasicDBObject("$match", builder.get()),
+                new BasicDBObject("$project", modify),
+                new BasicDBObject("$group", group));
+
+        List<Map.Entry<Date, Integer>> result = new LinkedList<>();
+
+        for (DBObject obj: output.results()) {
+            DBObject id = (DBObject) obj.get("_id");
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(0);
+            c.set(Calendar.YEAR, (Integer) id.get("startYear"));
+            c.set(Calendar.MONTH, (Integer) id.get("startMonth"));
+            c.set(Calendar.DAY_OF_MONTH, (Integer) id.get("startDay"));
+            result.add(new AbstractMap.SimpleEntry<>(c.getTime(), (Integer) obj.get("total")));
+        }
+        return result;
     }
 
     private List<DBObject> timeSearches(Calendar start, Calendar end) {
