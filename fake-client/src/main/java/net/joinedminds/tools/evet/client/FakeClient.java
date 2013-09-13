@@ -2,9 +2,7 @@ package net.joinedminds.tools.evet.client;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
-import net.sf.json.JSON;
 import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -12,7 +10,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import sun.org.mozilla.javascript.internal.json.JsonParser;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,19 +30,20 @@ import java.util.TimerTask;
  */
 public class FakeClient {
 
-    public static final String BASE_ENDPOINT = "http://localhost:8080/";
+    public static final String DEFAULT_BASE_ENDPOINT = "http://localhost:8080/";
+    public static String baseEndPoint = DEFAULT_BASE_ENDPOINT;
 
     public static enum Types {
         ONE_SHOT("event"), DURATION_START("startEvent"), DURATION_END("endEvent"), NONE("");
 
-        String endPoint;
+        private String endPoint;
 
         private Types(String endPoint) {
-            this.endPoint = BASE_ENDPOINT + endPoint;
+            this.endPoint = endPoint;
         }
 
         public String getEndPoint() {
-            return endPoint;
+            return baseEndPoint + endPoint;
         }
     }
 
@@ -60,6 +58,13 @@ public class FakeClient {
     public static final String[] NODES = {"one", "two", "three", "four", "five", "six", "seven"};
 
     public static void main(String[] args) throws IOException {
+        if(args.length > 0) {
+            baseEndPoint = args[0];
+            if (!baseEndPoint.endsWith("/")) {
+                baseEndPoint = baseEndPoint + "/";
+            }
+        }
+        System.out.println("Running with end point " + baseEndPoint);
         Timer timer = new Timer("Event Generator", true);
         final Random random = new Random();
         final Queue<String> idQueue = new LinkedList<>();
@@ -97,7 +102,7 @@ public class FakeClient {
     }
 
     private static void endEvent(String lastId) throws URISyntaxException, IOException {
-        URI uri = new URIBuilder(Types.DURATION_END.endPoint).addParameter("id", lastId).build();
+        URI uri = new URIBuilder(Types.DURATION_END.getEndPoint()).addParameter("id", lastId).build();
         System.out.println(uri.toString());
         execute(uri);
     }
@@ -108,7 +113,7 @@ public class FakeClient {
         String node = randObject(random, NODES);
         String title = system + "-" + randObject(random, TAGS);
 
-        URI uri = new URIBuilder(type.endPoint).
+        URI uri = new URIBuilder(type.getEndPoint()).
                 addParameter("system", system).
                 addParameter("title", title).
                 addParameter("node", node).
