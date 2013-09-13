@@ -44,8 +44,8 @@ html(height: "100%") {
         script(type: "text/javascript") {
             raw("var rootUrl = '${rootUrl}';")
         }
-        script(src: "${rootUrl}/js/timeline-view.js", type: "text/javascript")
-        st.adjunct(includes: "org.kohsuke.stapler.simile.timeline")
+        script(src: "${rootUrl}/js/filter-form.js", type: "text/javascript")
+        st.include(it: my, page: "head.groovy")
         link(rel: "stylesheet", href: "${rootUrl}/style.css")
     }
     body(onload: "onLoad();", onresize: "onResize();", height: "100%") {
@@ -101,7 +101,7 @@ html(height: "100%") {
                     }
                 }
                 div(class: "span10", style: "height: 100%") {
-                    div(id: "the-timeline", style: "height: 99%; width: 100%; margin: 3px; border: 1px solid #aaa")
+                    st.include(it: my, page: "main.groovy")
                 }
             }
         }

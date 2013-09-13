@@ -43,13 +43,13 @@ import static net.joinedminds.tools.evet.Functions.ifNull;
  */
 public class ViewBuilder {
     public static final int DEFAULT_START_DAYS = -2;
-    private final Db db;
-    private Calendar start;
-    private Calendar end;
-    private Set<String> systems;
-    private Set<String> tags;
-    private Set<String> nodes;
-    private FormData formData;
+    protected final Db db;
+    protected Calendar start;
+    protected Calendar end;
+    protected Set<String> systems;
+    protected Set<String> tags;
+    protected Set<String> nodes;
+    protected FormData formData;
 
 
     public ViewBuilder(Db db) {
@@ -195,13 +195,9 @@ public class ViewBuilder {
         return this;
     }
 
-    public TimelineEventList doJson(StaplerResponse response) throws IOException {
-        ensureStart();
-        ensureEnd();
-        return db.findEvents(start, end, systems, tags, nodes);
-    }
 
-    private void ensureEnd() {
+
+    protected void ensureEnd() {
         if (end == null) {
             end = defaultEnd();
             formData.end = (Calendar)end.clone();
@@ -212,7 +208,7 @@ public class ViewBuilder {
         return Calendar.getInstance();
     }
 
-    private void ensureStart() {
+    protected void ensureStart() {
         if (start == null) {
             start = defaultStart();
             formData.start = (Calendar)start.clone();
@@ -225,7 +221,7 @@ public class ViewBuilder {
         return c;
     }
 
-    private void ensureStartNow() {
+    protected void ensureStartNow() {
         if (start == null) {
             start = Calendar.getInstance();
             formData.start = (Calendar)start.clone();

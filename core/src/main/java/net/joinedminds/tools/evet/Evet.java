@@ -186,7 +186,7 @@ public class Evet {
     }
 
     public ViewBuilder getTimeline() {
-        return new ViewBuilder(db);
+        return new TimelineViewBuilder(db);
     }
 
     private String findNode(StaplerRequest request, String node) {
