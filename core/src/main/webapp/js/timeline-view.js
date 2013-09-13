@@ -33,17 +33,24 @@ function onLoad() {
     var eventSource1 = new Timeline.DefaultEventSource();
     var bandInfos = [
         Timeline.createBandInfo({
-            width:          "80%",
-            intervalUnit:   Timeline.DateTime.HOUR,
+            width:          "74%",
+            intervalUnit:   Timeline.DateTime.MINUTE,
             eventSource:    eventSource1,
-            intervalPixels: 100
+            intervalPixels: 25
         }),
         Timeline.createBandInfo({
             width:          "8%",
+            intervalUnit:   Timeline.DateTime.HOUR,
+            eventSource:    eventSource1,
+            overview:       true,
+            intervalPixels: 70
+        }),
+        Timeline.createBandInfo({
+            width:          "6%",
             intervalUnit:   Timeline.DateTime.DAY,
             eventSource:    eventSource1,
             overview:       true,
-            intervalPixels: 100
+            intervalPixels: 70
         })
         ,
         Timeline.createBandInfo({
@@ -68,6 +75,8 @@ function onLoad() {
     bandInfos[2].highlight = true;
     bandInfos[3].syncWith = 2;
     bandInfos[3].highlight = true;
+    bandInfos[4].syncWith = 3;
+    bandInfos[4].highlight = true;
     tl = Timeline.create(document.getElementById("the-timeline"), bandInfos);
 
     tl.loadJSON("json", function(json, url) {
