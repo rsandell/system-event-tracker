@@ -1,7 +1,3 @@
-import com.google.common.base.Joiner
-import net.joinedminds.tools.evet.Functions
-import net.joinedminds.tools.evet.ViewBuilder
-
 /*
  * The MIT License
  *
@@ -26,6 +22,9 @@ import net.joinedminds.tools.evet.ViewBuilder
  * THE SOFTWARE.
  */
 
+import net.joinedminds.tools.evet.Functions
+import net.joinedminds.tools.evet.ViewBuilder
+
 def st = namespace("jelly:stapler")
 
 ViewBuilder view = my
@@ -42,6 +41,9 @@ html(height: "100%") {
         st.adjunct(includes: "org.kohsuke.stapler.jquery")
         st.adjunct(includes: "org.kohsuke.stapler.bootstrap-responsive")
         st.adjunct(includes: "org.kohsuke.stapler.fontawesome")
+        script(type: "text/javascript") {
+            raw("var rootUrl = '${rootUrl}';")
+        }
         script(src: "${rootUrl}/js/timeline-view.js", type: "text/javascript")
         st.adjunct(includes: "org.kohsuke.stapler.simile.timeline")
         link(rel: "stylesheet", href: "${rootUrl}/style.css")
@@ -59,7 +61,7 @@ html(height: "100%") {
                             span(view.endString())
                         }
                     }
-                    form {
+                    form(id: "filterForm") {
                         fieldset {
                             legend("Start")
                             label("Timestamp")
@@ -94,6 +96,7 @@ html(height: "100%") {
                             input(type: "text", name: "tags", value: view.tags?.join(","))
                             label("Nodes")
                             input(type: "text", name: "nodes", value: view.nodes?.join(","))
+                            button(type: "button", class: "btn", onclick:"filterFormSubmit();", "Filter")
                         }
                     }
                 }
