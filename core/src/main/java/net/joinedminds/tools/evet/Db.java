@@ -310,7 +310,7 @@ public class Db {
 
     }
 
-    public List<Map.Entry<Date, Integer>> countEvents(Calendar start, Calendar end, Set<String> systems, Set<String> tags, Set<String> nodes) {
+    public TimeValueTable countEvents(Calendar start, Calendar end, Set<String> systems, Set<String> tags, Set<String> nodes) {
         Preconditions.checkNotNull(start, START);
         Preconditions.checkNotNull(end, END);
         String[] systemsArr = null;
@@ -358,7 +358,7 @@ public class Db {
                 new BasicDBObject("$project", modify),
                 new BasicDBObject("$group", group));
 
-        List<Map.Entry<Date, Integer>> result = new LinkedList<>();
+        TimeValueTable result = new TimeValueTable();
 
         for (DBObject obj: output.results()) {
             DBObject id = (DBObject) obj.get("_id");
@@ -367,7 +367,7 @@ public class Db {
             c.set(Calendar.YEAR, (Integer) id.get("startYear"));
             c.set(Calendar.MONTH, (Integer) id.get("startMonth"));
             c.set(Calendar.DAY_OF_MONTH, (Integer) id.get("startDay"));
-            result.add(new AbstractMap.SimpleEntry<>(c.getTime(), (Integer) obj.get("total")));
+            result.put(c.getTime(), (Integer) obj.get("total"));
         }
         return result;
     }

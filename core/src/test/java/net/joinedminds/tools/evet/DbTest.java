@@ -29,15 +29,18 @@ import com.google.inject.Injector;
 import org.junit.Before;
 import org.junit.Test;
 import org.koshuke.stapler.simile.timeline.TimelineEventList;
+import org.mockito.internal.util.collections.Sets;
 
 import javax.servlet.ServletContext;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -153,5 +156,32 @@ public class DbTest extends EmbeddedMongoTest {
         c.add(Calendar.DAY_OF_MONTH, -1);
         TimelineEventList events = db.findEvents(c, Calendar.getInstance(), null, null, null);
         assertEquals(0, events.size());
+    }
+
+    @Test
+    public void testCountEvents() throws Exception {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(0);
+        calendar.set(Calendar.YEAR, 2000);
+        calendar.set(Calendar.MONTH, 2);
+        calendar.set(Calendar.DAY_OF_MONTH, 2);
+        calendar.set(Calendar.HOUR_OF_DAY, 2);
+        db.addHistoricalEvent("Test", calendar.getTime(), null, "Testit", "node", "", null, null);
+        calendar.set(Calendar.HOUR_OF_DAY, 3);
+        db.addHistoricalEvent("Test", calendar.getTime(), null, "Testit", "node", "", null, null);
+        calendar.set(Calendar.DAY_OF_MONTH, 3);
+        calendar.set(Calendar.HOUR_OF_DAY, 2);
+        db.addHistoricalEvent("Test", calendar.getTime(), null, "Testit", "node", "", null, null);
+        calendar.set(Calendar.HOUR_OF_DAY, 3);
+        db.addHistoricalEvent("Test", calendar.getTime(), null, "Testit", "node", "", null, null);
+
+
+        calendar.set(Calendar.DAY_OF_MONTH, 2);
+        calendar.set(Calendar.HOUR_OF_DAY, 1);
+        Calendar end = (Calendar)calendar.clone();
+        end.set(Calendar.DAY_OF_MONTH, 4);
+        TimeValueTable table = db.countEvents(calendar, end, Sets.newSet("Test"), null, null);
+        assertEquals(2, table.keySet().size());
+        assertEquals(2, (int)table.get(table.keySet().iterator().next()).get(0));
     }
 }

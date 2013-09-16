@@ -13,9 +13,13 @@ public class TimePlotViewBuilder extends ViewBuilder {
         super(db);
     }
 
-    public List<Map.Entry<Date,Integer>> getData() {
+    public TimeValueTable getData() {
         ensureStart();
         ensureEnd();
         return db.countEvents(start, end, systems, tags, nodes);
+    }
+
+    public TimeValueTable doCsv() {
+        return getData();
     }
 }
