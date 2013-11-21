@@ -311,6 +311,11 @@ public class Db {
     }
 
     public TimeValueTable countEvents(Calendar start, Calendar end, Set<String> systems, Set<String> tags, Set<String> nodes) {
+        return countEvents(CountResolution.Day, start, end, systems, tags, nodes);
+    }
+
+    public TimeValueTable countEvents(CountResolution resolution, Calendar start, Calendar end,
+                                      Set<String> systems, Set<String> tags, Set<String> nodes) {
         Preconditions.checkNotNull(start, START);
         Preconditions.checkNotNull(end, END);
         String[] systemsArr = null;
@@ -340,33 +345,21 @@ public class Db {
             builder = builder.and(TAGS).in(tagsArr);
         }
 
-        BasicDBObject modify = new BasicDBObject();
-        modify.put("startYear", new BasicDBObject("$year", "$start"));
-        modify.put("startMonth", new BasicDBObject("$month", "$start"));
-        modify.put("startDay", new BasicDBObject("$dayOfMonth", "$start"));
-
-        BasicDBObject groupNames = new BasicDBObject();
-        groupNames.put("startYear", "$startYear");
-        groupNames.put("startMonth", "$startMonth");
-        groupNames.put("startDay", "$startDay");
-
-        BasicDBObject group = new BasicDBObject("_id", groupNames);
+        BasicDBObject group = new BasicDBObject("_id", resolution.getAggregateGrouping());
         group.put("total", new BasicDBObject("$sum", 1));
 
         AggregationOutput output = collection.aggregate(
                 new BasicDBObject("$match", builder.get()),
-                new BasicDBObject("$project", modify),
+                new BasicDBObject("$project", resolution.getAggregateModify()),
                 new BasicDBObject("$group", group));
 
         TimeValueTable result = new TimeValueTable();
+        result.setResolution(resolution);
 
         for (DBObject obj: output.results()) {
             DBObject id = (DBObject) obj.get("_id");
             Calendar c = Calendar.getInstance();
-            c.setTimeInMillis(0);
-            c.set(Calendar.YEAR, (Integer) id.get("startYear"));
-            c.set(Calendar.MONTH, (Integer) id.get("startMonth"));
-            c.set(Calendar.DAY_OF_MONTH, (Integer) id.get("startDay"));
+            resolution.fillCalendar(c, id);
             result.put(c.getTime(), (Integer) obj.get("total"));
         }
         return result;
@@ -402,5 +395,81 @@ public class Db {
         return QueryBuilder.start(DURATION_EVENT).is(true).
                 and(START).lessThan(start.getTime()).
                 and(END).greaterThan(end.getTime()).get();
+    }
+
+    public static enum CountResolution {
+        Day {
+            @Override
+            BasicDBObject getAggregateModify() {
+                BasicDBObject modify = new BasicDBObject();
+                modify.put("startYear", new BasicDBObject("$year", "$start"));
+                modify.put("startMonth", new BasicDBObject("$month", "$start"));
+                modify.put("startDay", new BasicDBObject("$dayOfMonth", "$start"));
+                return modify;
+            }
+
+            @Override
+            BasicDBObject getAggregateGrouping() {
+                BasicDBObject groupNames = new BasicDBObject();
+                groupNames.put("startYear", "$startYear");
+                groupNames.put("startMonth", "$startMonth");
+                groupNames.put("startDay", "$startDay");
+                return groupNames;
+            }
+
+            @Override
+            void fillCalendar(Calendar c, DBObject id) {
+                c.setTimeInMillis(0);
+                c.set(Calendar.YEAR, (Integer) id.get("startYear"));
+                c.set(Calendar.MONTH, (Integer) id.get("startMonth"));
+                c.set(Calendar.DAY_OF_MONTH, (Integer) id.get("startDay"));
+            }
+        },
+        Hour {
+            @Override
+            BasicDBObject getAggregateModify() {
+                BasicDBObject modify = Day.getAggregateModify();
+                modify.put("startHour", new BasicDBObject("$hour", "$start"));
+                return modify;
+            }
+
+            @Override
+            BasicDBObject getAggregateGrouping() {
+                BasicDBObject groupNames = Day.getAggregateGrouping();
+                groupNames.put("startHour", "$startHour");
+                return groupNames;
+            }
+
+            @Override
+            void fillCalendar(Calendar c, DBObject id) {
+                Day.fillCalendar(c, id);
+                c.set(Calendar.HOUR_OF_DAY, (Integer) id.get("startHour"));
+            }
+        },
+        Minute {
+            @Override
+            BasicDBObject getAggregateModify() {
+                BasicDBObject modify = Hour.getAggregateModify();
+                modify.put("startMinute", new BasicDBObject("$minute", "$start"));
+                return modify;
+            }
+
+            @Override
+            BasicDBObject getAggregateGrouping() {
+                BasicDBObject groupNames = Hour.getAggregateGrouping();
+                groupNames.put("startMinute", "$startMinute");
+                return groupNames;
+            }
+
+            @Override
+            void fillCalendar(Calendar c, DBObject id) {
+                Hour.fillCalendar(c, id);
+                c.set(Calendar.MINUTE, (Integer) id.get("startMinute"));
+            }
+        };
+
+        abstract BasicDBObject getAggregateModify();
+        abstract BasicDBObject getAggregateGrouping();
+        abstract void fillCalendar(Calendar c, DBObject id);
     }
 }

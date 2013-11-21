@@ -5,6 +5,8 @@ package net.joinedminds.tools.evet;
  */
 public class TimePlotViewBuilder extends ViewBuilder {
 
+    private Db.CountResolution resolution = Db.CountResolution.Day;
+
     public TimePlotViewBuilder(Db db) {
         super(db);
     }
@@ -12,7 +14,7 @@ public class TimePlotViewBuilder extends ViewBuilder {
     public TimeValueTable getData() {
         ensureStart();
         ensureEnd();
-        return db.countEvents(start, end, systems, tags, nodes);
+        return db.countEvents(resolution, start, end, systems, tags, nodes);
     }
 
     public TimeValueTable doCsv() {
@@ -31,5 +33,10 @@ public class TimePlotViewBuilder extends ViewBuilder {
         TimeValueTable data = getData();
         data.setFormat(TimeValueTable.Format.Jsonp);
         return data;
+    }
+
+    public TimePlotViewBuilder getResolution(String res) {
+        resolution = Db.CountResolution.valueOf(res);
+        return this;
     }
 }

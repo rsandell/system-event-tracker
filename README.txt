@@ -36,6 +36,7 @@ MongoDB password - the password for the user logging into the Mongo.
   Default:  <NO_PASSWORD>
 
 REST Endpoints
+--------------
 /event
   Parameters: system, title, <node>, <description>, <tags[]>
 A non duration event.
@@ -55,3 +56,51 @@ The only required parameter is the id from the startEvent, but the client can ch
 
 
 Any of the endpoints can be provided any arbitrary parameters besides those "hard coded" and they will be saved into the database as well.
+
+Retrieve data
+--------------
+
+Timeline
+---------
+ /timeline
+ See each event on a timeline.
+ The view has a builder pattern by the rest of the URL that can be used to filter out events.
+
+ Examples:
+
+ /timeline/systems/Test
+ Get only the events for system Test
+
+ /timeline/startHours/-4/startDays/-1/startWeeks/-1/startMonths/-1/endHours/-1/
+ Get events started from one month, one day and four hours ago up to now minus one hour
+
+ /timeline/startHours/-4/startHours/-4/
+ The times are added up so this would get events started 8 hours ago
+
+ /timeline/tags/test/
+ Get only the events that has the tag test
+
+ /timeline/nodes/slave001/
+ Get only the events that arrived from the node slave001
+
+ Any combinations of the above are valid.
+ To get the raw json data just append /json to the end of the URL
+
+Time Plot
+---------
+ /plot
+ Count number of events by day, hour or minute
+
+ The same builder pattern URL for filtering can be applied to the timeplot as there is for the above timeline.
+ You can get the count by different resolutions
+
+ /plot/resolution/Day
+ Count by day (the default)
+
+ /plot/resolution/Day
+ by hour
+
+ /plot/resolution/Minute
+ by minute
+
+ To get the raw data add /csv, /json or /jsonp at the end of the URL for the format you want.

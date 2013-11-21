@@ -44,6 +44,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Description
@@ -53,9 +55,11 @@ import java.util.Set;
 public class TimeValueTable implements ListMultimap<Date, Integer>, HttpResponse {
 
     public static final FastDateFormat DATE_FORMAT = DateFormatUtils.ISO_DATE_FORMAT;
+    public static final FastDateFormat DATETIME_FORMAT = DateFormatUtils.ISO_DATETIME_FORMAT;
     ListMultimap<Date, Integer> internal = LinkedListMultimap.create();
 
     private Format format = Format.Csv;
+    private Db.CountResolution resolution = Db.CountResolution.Day;
 
     public static enum Format {
         Csv, Json, Jsonp
@@ -99,11 +103,14 @@ public class TimeValueTable implements ListMultimap<Date, Integer>, HttpResponse
     }
 
     private JSONObject getJsonObject() {
+        FastDateFormat fdf = resolution == Db.CountResolution.Day ? DATE_FORMAT : DATETIME_FORMAT;
         JSONObject data = new JSONObject();
         JSONArray categories = new JSONArray();
         JSONArray values = new JSONArray();
-        for (Date key : keySet()) {
-            categories.add(DATE_FORMAT.format(key));
+        SortedSet<Date> keys = new TreeSet<>();
+        keys.addAll(keySet());
+        for (Date key : keys) {
+            categories.add(fdf.format(key));
             values.add(get(key).get(0)); //TODO support multisets
         }
         data.put("categories", categories);
@@ -112,10 +119,13 @@ public class TimeValueTable implements ListMultimap<Date, Integer>, HttpResponse
     }
 
     protected void generateCsvResponse(StaplerResponse rsp) throws IOException {
+        FastDateFormat fdf = resolution == Db.CountResolution.Day ? DATE_FORMAT : DATETIME_FORMAT;
         rsp.setContentType("text/csv");
         PrintWriter out = rsp.getWriter();
-        for (Date key : keySet()) {
-            out.print(DATE_FORMAT.format(key));
+        SortedSet<Date> keys = new TreeSet<>();
+        keys.addAll(keySet());
+        for (Date key : keys) {
+            out.print(fdf.format(key));
             for (Integer value : get(key)) {
                 out.print(',');
                 out.print(value);
@@ -231,5 +241,13 @@ public class TimeValueTable implements ListMultimap<Date, Integer>, HttpResponse
 
     public void setFormat(Format format) {
         this.format = format;
+    }
+
+    public Db.CountResolution getResolution() {
+        return resolution;
+    }
+
+    public void setResolution(Db.CountResolution resolution) {
+        this.resolution = resolution;
     }
 }
