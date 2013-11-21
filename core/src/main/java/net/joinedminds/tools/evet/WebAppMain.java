@@ -1,4 +1,4 @@
-package net.joinedminds.tools.evet;/*
+/*
  * The MIT License
  *
  * Copyright (c) 2012-, Robert Sandell-sandell.robert@gmail.com. All rights reserved.
@@ -21,6 +21,7 @@ package net.joinedminds.tools.evet;/*
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package net.joinedminds.tools.evet;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
