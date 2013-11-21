@@ -28,6 +28,8 @@ import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.FastDateFormat;
 import org.kohsuke.stapler.HttpResponse;
@@ -50,19 +52,71 @@ import java.util.Set;
  */
 public class TimeValueTable implements ListMultimap<Date, Integer>, HttpResponse {
 
-    public static final FastDateFormat FORMAT = DateFormatUtils.ISO_DATE_FORMAT;
+    public static final FastDateFormat DATE_FORMAT = DateFormatUtils.ISO_DATE_FORMAT;
     ListMultimap<Date, Integer> internal = LinkedListMultimap.create();
+
+    private Format format = Format.Csv;
+
+    public static enum Format {
+        Csv, Json, Jsonp
+    }
 
     /**
      * Renders HTTP response.
      */
     @Override
     public void generateResponse(StaplerRequest req, StaplerResponse rsp, Object node) throws IOException, ServletException {
+        switch (format) {
+            case Json:
+                generateJsonResponse(rsp);
+                break;
+            case Jsonp:
+                generateJsonpResponse(rsp);
+                break;
+            case Csv:
+            default:
+                generateCsvResponse(rsp);
+                break;
+        }
+    }
+
+    protected void generateJsonResponse(StaplerResponse rsp) throws IOException {
+        rsp.setContentType("application/json");
+        PrintWriter out = rsp.getWriter();
+        JSONObject data = getJsonObject();
+        data.write(out);
+        out.flush();
+    }
+
+    protected void generateJsonpResponse(StaplerResponse rsp) throws IOException {
+        rsp.setContentType("text/javascript");
+        PrintWriter out = rsp.getWriter();
+        out.print("evet = ");
+        JSONObject data = getJsonObject();
+        data.write(out);
+        out.print(";");
+        out.flush();
+    }
+
+    private JSONObject getJsonObject() {
+        JSONObject data = new JSONObject();
+        JSONArray categories = new JSONArray();
+        JSONArray values = new JSONArray();
+        for (Date key : keySet()) {
+            categories.add(DATE_FORMAT.format(key));
+            values.add(get(key).get(0)); //TODO support multisets
+        }
+        data.put("categories", categories);
+        data.put("data", values);
+        return data;
+    }
+
+    protected void generateCsvResponse(StaplerResponse rsp) throws IOException {
         rsp.setContentType("text/csv");
         PrintWriter out = rsp.getWriter();
-        for(Date key : keySet()) {
-            out.print(FORMAT.format(key));
-            for(Integer value: get(key)) {
+        for (Date key : keySet()) {
+            out.print(DATE_FORMAT.format(key));
+            for (Integer value : get(key)) {
                 out.print(',');
                 out.print(value);
             }
@@ -169,5 +223,13 @@ public class TimeValueTable implements ListMultimap<Date, Integer>, HttpResponse
     @Override
     public int hashCode() {
         return internal.hashCode();
+    }
+
+    public Format getFormat() {
+        return format;
+    }
+
+    public void setFormat(Format format) {
+        this.format = format;
     }
 }

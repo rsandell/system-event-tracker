@@ -1,9 +1,5 @@
 package net.joinedminds.tools.evet;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Number of events per day
  */
@@ -20,6 +16,20 @@ public class TimePlotViewBuilder extends ViewBuilder {
     }
 
     public TimeValueTable doCsv() {
-        return getData();
+        TimeValueTable data = getData();
+        data.setFormat(TimeValueTable.Format.Csv);
+        return data;
+    }
+
+    public TimeValueTable doJson() {
+        TimeValueTable data = getData();
+        data.setFormat(TimeValueTable.Format.Json);
+        return data;
+    }
+
+    public TimeValueTable doJsonp() {
+        TimeValueTable data = getData();
+        data.setFormat(TimeValueTable.Format.Jsonp);
+        return data;
     }
 }
